@@ -231,6 +231,23 @@ class TestTheCommitTouchesOnlyMeasurements(unittest.TestCase):
         self.assertIn("harness/levers.py", status)
 
 
+    def test_nothing_to_commit_is_success_not_failure(self):
+        """The copies were current after all.
+
+        This is the happy case, not an error: the plan saw a change, the
+        copy happened, and git found nothing to record because the
+        committed state already matched. Reporting that as a failure would
+        leave the operator thinking something went wrong.
+        """
+        name = "optimize_1.json"
+        self.sb.write_record(self.sb.source, name, {"ok": True})
+        shutil.copy2(self.sb.source / name, self.sb.dest / name)
+        self.sb.commit_all()
+        ok, out = sync.commit(self.sb.repo, [name], "sync")
+        self.assertTrue(ok, out)
+        self.assertIn("already current", out)
+
+
 class TestTheCommitMessageSaysWhatChanged(unittest.TestCase):
     def test_it_names_the_new_and_the_changed(self):
         msg = sync.build_message(["optimize_new.json"],

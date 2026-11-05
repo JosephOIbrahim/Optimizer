@@ -168,7 +168,12 @@ def copy_files(source: Path, dest: Path, names: List[str]) -> None:
 
 
 def commit(repo: Path, names: List[str], message: str) -> Tuple[bool, str]:
-    """Stage ONLY measurements/ and commit. Returns (ok, output)."""
+    """Stage ONLY measurements/ and commit. Returns (ok, output).
+
+    "Nothing staged" is not a failure. It means the committed state already
+    matches what was copied — the copies were current after all, and there is
+    nothing to record. That is the happy case, not an error.
+    """
     rc, out, err = _git(repo, "add", "--", "measurements/")
     if rc != 0:
         return False, f"git add failed: {err.strip() or out.strip()}"
@@ -178,7 +183,7 @@ def commit(repo: Path, names: List[str], message: str) -> Tuple[bool, str]:
     rc, staged, _ = _git(repo, "diff", "--cached", "--name-only", "--",
                          "measurements/")
     if not staged.strip():
-        return False, "nothing staged"
+        return True, "the committed copies were already current — nothing to commit"
 
     rc, out, err = _git(repo, "commit", "-m", message)
     if rc != 0:
