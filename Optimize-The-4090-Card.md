@@ -345,18 +345,25 @@ v12 ledger                       # same, in the honesty report
 ```
 Optimize-The-4090.bat      the console
 The-Method.bat              RETIRED - delegates here
+Sync-Measurements.bat       copy the live records into the repo and commit them
 harness/optimize.py         request -> objective -> lever -> verdict
 harness/levers.py           every lever, and the ONE way to measure one
 harness/paired.py           the paired A/B engine
 harness/constraint.py       what is actually binding
 harness/shot.py             the shot harness (frames per process)
+harness/retract.py          withdraw a verdict, keeping the original visible
+harness/sync_measurements.py  keeps the committed records current
 harness/method.py           old Method - its candidate path now REFUSES
 harness/lever_run.py        old lever runner - now REFUSES
 OptimizerV12/v12/objective.py   the objectives and the paired t-test
 OptimizerV12/v12/change.py       NVML_POWER_LIMIT: readable, so it restores
 ```
 
-Measurements: `E:\OptimizerV12\measurements\`.
+Measurements: `E:\OptimizerV12\measurements\` is the live store; the repo
+keeps a committed copy of every record under `measurements/`, so a figure
+quoted here can be checked against the file it came from. Run
+`Sync-Measurements.bat` after a campaign to refresh those copies — it
+compares content, not names, so it also catches a record edited in place.
 Ledger (what was kept, what was measured): `v12 ledger` from the V12 launcher.
 
 ---

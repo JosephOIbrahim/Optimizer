@@ -344,6 +344,11 @@ def main() -> int:
         args.request, obj, spec, results))
     print(f"\n  saved {rec}")
     print(closure_report(results, chosen))
+    # The record now exists in the live store; the repo keeps a committed
+    # copy of every record, and that copy is now stale by exactly one file.
+    # Reminding the operator beats letting the drift happen quietly.
+    print("\n  the committed copy of this record is now stale. to refresh it:")
+    print("      Sync-Measurements.bat")
     return 0
 
 

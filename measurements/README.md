@@ -36,6 +36,23 @@ record resolves against the live store rather than against this directory.
 The render output — PNG frames, tens of megabytes — is not committed. It is
 output, not evidence.
 
+## Keeping the copies current
+
+```
+Sync-Measurements.bat          copy the live records in and commit them
+Sync-Measurements.bat --check  report what would change, and change nothing
+```
+
+The sync compares CONTENT, not file names. That matters because a retraction
+rewrites a record in place — same name, different bytes — and a sync that
+copied "the new files" would never notice.
+
+It commits only `measurements/`, so source edits you have in flight are left
+alone. It will not delete a committed record that has gone from the live
+store: that is reported, because deleting evidence is a decision. And it
+will not commit a record that does not parse, so a truncated write cannot
+land in the history.
+
 ## The retractions
 
 Three verdicts from 2026-11-03 were false, and the records that carried them
