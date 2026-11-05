@@ -286,3 +286,122 @@ class TestTheCopyIsFaithful(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestTheCampaignCommit(unittest.TestCase):
+    """One commit, saying what the campaign found.
+
+    A record that is committed on its own, in a commit that only says
+    "sync the measurement records", tells a reader of the history nothing
+    about what was measured. The campaign's own record should land in a
+    commit that says what the campaign found.
+    """
+
+    def setUp(self):
+        self.sb = _Sandbox()
+        self.addCleanup(self.sb.cleanup)
+
+    def _campaign_record(self) -> dict:
+        return {
+            "request": "render",
+            "objective": "karma-xpu",
+            "results": {
+                "aov_variant": {
+                    "ok": True,
+                    "effect": 0.0979,
+                    "p_value": 3.72e-05,
+                    "n_baseline": 5.0,
+                    "drift": -0.0182,
+                    "control_spread": 0.027,
+                    "contention_events": 0,
+                    "variant": "beauty_only",
+                }
+            },
+        }
+
+    def test_the_message_names_what_the_campaign_found(self):
+        msg = sync.build_campaign_message(self._campaign_record(), [], [])
+        self.assertIn("karma-xpu", msg)
+        self.assertIn("render", msg)
+        self.assertIn("aov_variant", msg)
+        self.assertIn("+9.79%", msg)
+        self.assertIn("beauty_only", msg)
+
+    def test_the_message_reads_the_effect_out_of_the_record(self):
+        """Not a paraphrase the caller supplies — the record itself, so the
+        message cannot claim something the record does not say."""
+        msg = sync.build_campaign_message(self._campaign_record(), [], [])
+        self.assertIn("9.79", msg)
+        # A record with a different effect must produce a different message.
+        other = self._campaign_record()
+        other["results"]["aov_variant"]["effect"] = 0.5
+        self.assertIn("50.00%", sync.build_campaign_message(other, [], []))
+
+    def test_the_message_lists_the_records(self):
+        msg = sync.build_campaign_message(
+            self._campaign_record(),
+            ["optimize_20261105_120000.json"],
+            ["levers_20261103_221724.json"])
+        self.assertIn("optimize_20261105_120000.json", msg)
+        self.assertIn("levers_20261103_221724.json", msg)
+
+    def test_staging_and_committing_lands_one_commit(self):
+        """The campaign's record and an edited retraction, one commit."""
+        name = "levers_20261103_221724.json"
+        # A retraction in place: the record is committed, then EDITED.
+        self.sb.write_record(self.sb.source, name, {"verdict": "ADMIT +16.91%"})
+        shutil.copy2(self.sb.source / name, self.sb.dest / name)
+        self.sb.commit_all()
+        self.sb.write_record(self.sb.source, name, {"verdict": "RETRACTED - was: ADMIT +16.91%"})
+
+        # And the campaign's own new record.
+        self.sb.write_record(self.sb.source, "optimize_20261105_120000.json",
+                             self._campaign_record())
+
+        p = sync.sync_and_stage(self.sb.source, self.sb.dest, self.sb.repo)
+        self.assertEqual(p["new"], ["optimize_20261105_120000.json"])
+        self.assertEqual(p["changed"], [name])
+        # Staged, not committed.
+        self.assertEqual(len(_git(self.sb.repo, "log", "--oneline").strip().splitlines()), 1)
+
+        record = json.loads((self.sb.dest / "optimize_20261105_120000.json")
+                            .read_text(encoding="utf-8"))
+        msg = sync.build_campaign_message(record, p["new"], p["changed"])
+        ok, out = sync.commit_staged(self.sb.repo, msg)
+        self.assertTrue(ok, out)
+
+        # ONE new commit, containing both records.
+        log = _git(self.sb.repo, "log", "--oneline")
+        self.assertEqual(len(log.strip().splitlines()), 2, "expected one new commit")
+        committed = _git(self.sb.repo, "show", "--name-only", "--format=", "HEAD")
+        self.assertIn("measurements/optimize_20261105_120000.json", committed)
+        self.assertIn("measurements/levers_20261103_221724.json", committed)
+
+    def test_only_measurements_is_committed_even_with_other_staged_work(self):
+        """The operator may have something else staged. A measurement run
+        must not sweep it into the commit."""
+        (self.sb.repo / "harness").mkdir()
+        (self.sb.repo / "harness" / "levers.py").write_text("x = 1\n", encoding="utf-8")
+        self.sb.commit_all("initial")
+        # The operator stages a source edit.
+        (self.sb.repo / "harness" / "levers.py").write_text("x = 2\n", encoding="utf-8")
+        _git(self.sb.repo, "add", "--", "harness/levers.py")
+
+        self.sb.write_record(self.sb.source, "optimize_20261105_120000.json",
+                             self._campaign_record())
+        p = sync.sync_and_stage(self.sb.source, self.sb.dest, self.sb.repo)
+        ok, out = sync.commit_staged(self.sb.repo, "campaign")
+        self.assertTrue(ok, out)
+
+        committed = _git(self.sb.repo, "show", "--name-only", "--format=", "HEAD")
+        self.assertIn("measurements/optimize_20261105_120000.json", committed)
+        self.assertNotIn("harness/levers.py", committed,
+                         "the operator's staged edit must not be swept in")
+        # And it is still staged, exactly as it was.
+        staged = _git(self.sb.repo, "diff", "--cached", "--name-only")
+        self.assertIn("harness/levers.py", staged)
+
+    def test_committing_nothing_staged_is_not_a_failure(self):
+        ok, out = sync.commit_staged(self.sb.repo, "campaign")
+        self.assertTrue(ok, out)
+        self.assertIn("nothing staged", out)

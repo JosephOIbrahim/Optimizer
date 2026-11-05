@@ -20,10 +20,17 @@ a "copy the new files" script would miss.
 So this copies by CONTENT, not by name: a record that is new, or whose bytes
 changed, is staged and committed.
 
+Staging is separate from committing, because the campaign's own record and
+any other record that changed on E: should land in ONE commit — and that
+commit should say what the campaign FOUND, not that a sync happened. A
+commit that only says "sync the measurement records" tells a reader of the
+history nothing about what was measured.
+
 What it will not do
 -------------------
   * It will not commit anything outside `measurements/`. The operator may
-    have source edits in flight; those are not this script's business.
+    have source edits in flight — even staged — and those are not this
+    script's business.
   * It will not delete a committed record that has gone from the live store.
     That is a deletion, and a deletion of evidence is a decision, not a
     side effect. It is REPORTED instead.
@@ -44,7 +51,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parent
@@ -167,6 +174,48 @@ def copy_files(source: Path, dest: Path, names: List[str]) -> None:
         (dest / name).write_bytes((source / name).read_bytes())
 
 
+def stage(repo: Path, names: Optional[List[str]] = None) -> Tuple[bool, str]:
+    """Stage the records. Does NOT commit.
+
+    Staging happens during the run, so the campaign's own record and any
+    other record that changed on E: are already in the index by the time the
+    commit is made — one commit for both, rather than a second commit that
+    only says "sync".
+    """
+    if names:
+        args = ["add", "--"] + [f"measurements/{n}" for n in names]
+    else:
+        args = ["add", "--", "measurements/"]
+    rc, out, err = _git(repo, *args)
+    if rc != 0:
+        return False, f"git add failed: {err.strip() or out.strip()}"
+    return True, ""
+
+
+def staged_records(repo: Path) -> List[str]:
+    """Every record currently in the index, relative to measurements/."""
+    rc, out, _ = _git(repo, "diff", "--cached", "--name-only", "--",
+                     "measurements/")
+    if rc != 0:
+        return []
+    return [Path(line).name for line in out.splitlines() if line.strip()]
+
+
+def commit_staged(repo: Path, message: str) -> Tuple[bool, str]:
+    """Commit what is staged, and ONLY measurements/.
+
+    The path limit is the guarantee: whatever else the operator has staged —
+    a half-finished source edit, a branch they are mid-way through switching
+    — cannot be swept in by a measurement run.
+    """
+    if not staged_records(repo):
+        return True, "nothing staged — the committed copies were already current"
+    rc, out, err = _git(repo, "commit", "-m", message, "--", "measurements/")
+    if rc != 0:
+        return False, f"git commit failed: {err.strip() or out.strip()}"
+    return True, out.strip()
+
+
 def commit(repo: Path, names: List[str], message: str) -> Tuple[bool, str]:
     """Stage ONLY measurements/ and commit. Returns (ok, output).
 
@@ -174,21 +223,10 @@ def commit(repo: Path, names: List[str], message: str) -> Tuple[bool, str]:
     matches what was copied — the copies were current after all, and there is
     nothing to record. That is the happy case, not an error.
     """
-    rc, out, err = _git(repo, "add", "--", "measurements/")
-    if rc != 0:
-        return False, f"git add failed: {err.strip() or out.strip()}"
-
-    # Stage nothing but the records, even if the operator has other changes
-    # in flight.
-    rc, staged, _ = _git(repo, "diff", "--cached", "--name-only", "--",
-                         "measurements/")
-    if not staged.strip():
-        return True, "the committed copies were already current — nothing to commit"
-
-    rc, out, err = _git(repo, "commit", "-m", message)
-    if rc != 0:
-        return False, f"git commit failed: {err.strip() or out.strip()}"
-    return True, out.strip()
+    ok, msg = stage(repo, names)
+    if not ok:
+        return False, msg
+    return commit_staged(repo, message)
 
 
 def build_message(new: List[str], changed: List[str]) -> str:
@@ -218,6 +256,101 @@ def build_message(new: List[str], changed: List[str]) -> str:
         "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>",
     ]
     return "\n".join(lines)
+
+
+def describe_campaign(record: Dict[str, Any]) -> List[str]:
+    """One line describing what a campaign measured and what it found.
+
+    Read back out of the record itself, so the commit message cannot claim
+    something the record does not say. The whole point of committing the
+    record is that the claim is checkable — a message that paraphrases it
+    wrongly would be a second, unchecked version of the same fact.
+    """
+    results = record.get("results") or {}
+    if not isinstance(results, dict) or not results:
+        return []
+    out: List[str] = []
+    for lever, v in results.items():
+        if not isinstance(v, dict):
+            continue
+        bits = [f"{lever}"]
+        if v.get("effect") is not None:
+            bits.append(f"{v['effect']:+.2%}")
+        if v.get("p_value") is not None:
+            bits.append(f"p={v['p_value']:.3g}")
+        if v.get("n_baseline") is not None:
+            bits.append(f"n={v['n_baseline']:.0f}")
+        if v.get("drift") is not None:
+            bits.append(f"drift {v['drift']:+.2%}")
+        if v.get("control_spread") is not None:
+            bits.append(f"spread {v['control_spread']:.2%}")
+        if v.get("contention_events") is not None:
+            bits.append(f"contention {v['contention_events']}")
+        if v.get("variant"):
+            bits.append(f"({v['variant']})")
+        out.append("  " + "  ".join(bits))
+    return out
+
+
+def build_campaign_message(record: Optional[Dict[str, Any]],
+                          new: List[str], changed: List[str]) -> str:
+    """A commit message that says what the CAMPAIGN found.
+
+    Not "sync the records" — the record of a campaign should land in a
+    commit that says what the campaign measured, because that is the thing
+    a reader of the history wants to know.
+    """
+    headline = "Measure the machine"
+    lines: List[str] = []
+    if record:
+        request = record.get("request") or ""
+        objective = record.get("objective") or ""
+        if request and objective:
+            headline = f"Measure the {objective} workload ({request})"
+        detail = describe_campaign(record)
+        if detail:
+            lines.append("campaign")
+            lines += detail
+            lines.append("")
+    if new:
+        lines.append(f"New records ({len(new)}):")
+        lines += [f"  {n}" for n in new[:12]]
+        if len(new) > 12:
+            lines.append(f"  ... and {len(new) - 12} more")
+        lines.append("")
+    if changed:
+        lines.append(f"Changed records ({len(changed)}) — an edit in place, which "
+                     f"is what a retraction is:")
+        lines += [f"  {n}" for n in changed[:12]]
+        if len(changed) > 12:
+            lines.append(f"  ... and {len(changed) - 12} more")
+        lines.append("")
+    lines += [
+        "The measurement records live on E:\\OptimizerV12\\measurements, "
+        "deliberately off",
+        "OneDrive, and are committed here so a figure quoted in the operator "
+        "cards can be",
+        "checked against the record it came from.",
+        "",
+        "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>",
+    ]
+    return "\n".join([headline, ""] + lines)
+
+
+def sync_and_stage(source: Path = SOURCE, dest: Path = DEST,
+                   repo: Path = REPO_ROOT) -> Dict[str, List[str]]:
+    """Copy every changed record in and STAGE it. Does not commit.
+
+    Staging is separate from committing so the campaign's own record and any
+    other record that changed on E: go into ONE commit, made after the run
+    with a message that describes the campaign rather than the housekeeping.
+    """
+    p = plan(source, dest, repo)
+    touched = p["new"] + p["changed"]
+    if touched:
+        copy_files(source, dest, touched)
+        stage(repo, touched)
+    return p
 
 
 def main(argv=None) -> int:

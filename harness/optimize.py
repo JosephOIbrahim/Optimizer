@@ -63,6 +63,7 @@ Usage
 from __future__ import annotations
 
 import argparse
+import json
 import statistics
 import sys
 from pathlib import Path
@@ -344,7 +345,56 @@ def main() -> int:
         args.request, obj, spec, results))
     print(f"\n  saved {rec}")
     print(closure_report(results, chosen))
+    _commit_the_campaign(rec, results, chosen)
     return 0
+
+
+def _commit_the_campaign(rec: Path, results: List[Tuple[str, levers.Result]],
+                         chosen: List[str]) -> None:
+    """Put the campaign's record into the repo — in ONE commit.
+
+    The record is STAGED while the run is still going, and the commit is made
+    after it, so the campaign's own record and any other record that changed
+    on E: land together. A second commit that only says "sync" tells a reader
+    of the history nothing about what was measured; a commit that says what
+    the campaign found tells them everything.
+
+    Failure here is reported, never fatal. The measurement has already
+    happened and its record is already on E: — a repository that will not
+    take a commit must not lose the result.
+    """
+    try:
+        from harness import sync_measurements as sync
+    except Exception as e:                       # pragma: no cover
+        print(f"\n  (could not load the record sync: {e})")
+        return
+    repo = common.REPO_ROOT
+    if not sync._in_repo(repo):
+        print("\n  (not a git repository — the record stays on E:)")
+        return
+    try:
+        # Stage everything that changed on E:, including this campaign's own
+        # record, which write_measurement has just produced.
+        p = sync.sync_and_stage(common.MEASURE_ROOT, sync.DEST, repo)
+        record = None
+        try:
+            record = json.loads(rec.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+        message = sync.build_campaign_message(record, p["new"], p["changed"])
+        ok, out = sync.commit_staged(repo, message)
+    except Exception as e:
+        print(f"\n  (could not commit the record: {e})")
+        print("       the record is safe on E: — commit it later with "
+              "Sync-Measurements.bat")
+        return
+    if ok:
+        head = out.splitlines()[0] if out else ""
+        print(f"\n  committed: {head}")
+    else:
+        print(f"\n  (could not commit the record: {out})")
+        print("       the record is safe on E: — commit it later with "
+              "Sync-Measurements.bat")
 
 
 def closure_report(results: List[Tuple[str, levers.Result]],

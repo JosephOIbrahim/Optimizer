@@ -58,13 +58,10 @@ goto :run
 cls
 "%PY%" "%REPO%\harness\optimize.py" %*
 set "RC=!ERRORLEVEL!"
-REM The measurement records are committed after EVERY campaign, so the copies
-REM under measurements\ cannot go stale. This used to be a flag; it is not
-REM optional now, because a record that is quoted in the operator cards
-REM and not committed is a claim nobody can check.
-echo.
-echo   refreshing the committed measurement records...
-call "%REPO%\Sync-Measurements.bat" /nopause
+REM The tool commits the measurement record itself, at the end of the run,
+REM in ONE commit that says what the campaign found. It used to be committed
+REM here instead, in a second commit that only said "sync" -- which told a
+REM reader of the history nothing about what had been measured.
 exit /b !RC!
 
 :menu

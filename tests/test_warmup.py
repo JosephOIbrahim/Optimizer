@@ -34,7 +34,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
-from harness import levers, paired  # noqa: E402
+from harness import common, levers, paired  # noqa: E402
 
 
 def _arm(values):
@@ -45,7 +45,28 @@ def _arm(values):
     return arm
 
 
-class TestTheWarmUpIsExcluded(unittest.TestCase):
+#: The real contention probe, captured at import — before any test can
+#: patch it. These tests were reading the LIVE card: with a rival on the
+#: GPU the engine discarded a repetition and re-ran the arm, and the arm's
+#: iterator ran dry. A test that depends on a machine state must control it.
+_REAL_PROBE = common.other_gpu_processes
+
+
+def _quiet_probe(*a, **kw):
+    """Nobody else is on the card."""
+    return []
+
+
+class _QuietCard(unittest.TestCase):
+    """Base: the card is quiet, so no repetition is discarded."""
+
+    def setUp(self):
+        self.addCleanup(
+            lambda: setattr(common, "other_gpu_processes", _REAL_PROBE))
+        common.other_gpu_processes = _quiet_probe
+
+
+class TestTheWarmUpIsExcluded(_QuietCard):
     def test_the_warm_up_repetition_is_not_in_the_series(self):
         res = paired.Pair("t", _arm([999.0, 100.0, 100.0, 100.0]),
                           _arm([888.0, 90.0, 90.0, 90.0]),
@@ -78,7 +99,7 @@ class TestTheWarmUpIsExcluded(unittest.TestCase):
                         "without a warm-up the cold first repetition reads as drift")
 
 
-class TestEveryLeverWarmsUp(unittest.TestCase):
+class TestEveryLeverWarmsUp(_QuietCard):
     """A lever measured with no warm-up measures the machine's cold start."""
 
     def _body(self, name):
@@ -137,7 +158,7 @@ class TestEveryLeverWarmsUp(unittest.TestCase):
         self.assertEqual(levers.Context.from_args(_Args()).warmup, 1)
 
 
-class TestTheWarmUpIsOnTheCommandLine(unittest.TestCase):
+class TestTheWarmUpIsOnTheCommandLine(_QuietCard):
     def test_the_flag_exists(self):
         """An operator can see and change it."""
         src = (REPO / "harness" / "optimize.py").read_text(encoding="utf-8")

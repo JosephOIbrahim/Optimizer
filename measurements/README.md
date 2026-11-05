@@ -38,20 +38,26 @@ output, not evidence.
 
 ## Keeping the copies current
 
+Every campaign does this itself, at the end of the run: the record it just
+wrote is staged along with anything else that changed on the live store, and
+all of it lands in ONE commit whose message says what the campaign found.
+
 ```
 Sync-Measurements.bat          copy the live records in and commit them
 Sync-Measurements.bat --check  report what would change, and change nothing
 ```
+
+The two are for refreshing the copies without measuring anything.
 
 The sync compares CONTENT, not file names. That matters because a retraction
 rewrites a record in place — same name, different bytes — and a sync that
 copied "the new files" would never notice.
 
 It commits only `measurements/`, so source edits you have in flight are left
-alone. It will not delete a committed record that has gone from the live
-store: that is reported, because deleting evidence is a decision. And it
-will not commit a record that does not parse, so a truncated write cannot
-land in the history.
+alone — even if you have them *staged*. It will not delete a committed
+record that has gone from the live store: that is reported, because deleting
+evidence is a decision. And it will not commit a record that does not parse,
+so a truncated write cannot land in the history.
 
 ## The retractions
 

@@ -66,6 +66,17 @@ class _Scripted:
         return ["nuke.exe:10240MiB"] if self.made <= self.busy_count else []
 
 
+#: The real probe, captured at IMPORT time — before any test can patch it.
+#:
+#: It used to be captured per test, into an attribute that a second patch
+#: could clobber, and a subclass's setUp that did not call super()'s could
+#: skip the cleanup entirely. Either way the module was left patched for the
+#: rest of the session, and the leak only showed up once another test file
+#: started to depend on the real probe. Capturing it once, here, removes the
+#: ordering hazard altogether.
+_REAL_PROBE = common.other_gpu_processes
+
+
 class _ProbeTest(unittest.TestCase):
     """Base: stub the contention probe so the live card's load cannot affect
     the test.
@@ -74,10 +85,12 @@ class _ProbeTest(unittest.TestCase):
     exactly the variable the production code exists to control.
     """
 
+    def setUp(self):
+        self.addCleanup(
+            lambda: setattr(common, "other_gpu_processes", _REAL_PROBE))
+
     def _use(self, probe):
-        self._orig = common.other_gpu_processes
         common.other_gpu_processes = probe
-        self.addCleanup(lambda: setattr(common, "other_gpu_processes", self._orig))
 
 
 class TestQuietGate(_ProbeTest):
@@ -231,9 +244,9 @@ class TestTheWatcher(unittest.TestCase):
     """
 
     def test_a_quiet_workload_reports_no_contenders(self):
-        self._orig = common.other_gpu_processes
         common.other_gpu_processes = _quiet
-        self.addCleanup(lambda: setattr(common, "other_gpu_processes", self._orig))
+        self.addCleanup(
+            lambda: setattr(common, "other_gpu_processes", _REAL_PROBE))
         with common.ContenderWatcher(interval=0.05) as w:
             time.sleep(0.2)
         self.assertTrue(w.clean)
@@ -250,9 +263,9 @@ class TestTheWatcher(unittest.TestCase):
             busy = 2 <= state["calls"] <= 4
             return ["houdinifx.exe:4962MiB"] if busy else []
 
-        self._orig = common.other_gpu_processes
         common.other_gpu_processes = probe
-        self.addCleanup(lambda: setattr(common, "other_gpu_processes", self._orig))
+        self.addCleanup(
+            lambda: setattr(common, "other_gpu_processes", _REAL_PROBE))
         with common.ContenderWatcher(interval=0.02) as w:
             time.sleep(0.5)
         self.assertFalse(w.clean, "a rival that came and went must still be seen")

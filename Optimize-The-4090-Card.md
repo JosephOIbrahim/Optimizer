@@ -46,13 +46,26 @@ measures about 0.07% of the metric against a 5% threshold — too small to flip
 a verdict, and its sign is not established. See the position-bias note under
 rule 1.
 
-**Every campaign commits its measurement records.** After the run, the records
-are copied into `measurements/` in the repo and committed, so the copies this
-card quotes as evidence cannot go stale. It is not a flag — a record that is
-cited here and not committed is a claim nobody can check.
+**Every campaign commits its measurement records.** After the run, the
+records are copied into `measurements/` in the repo and committed, so the
+copies this card quotes as evidence cannot go stale. It is not a flag — a
+record that is cited here and not committed is a claim nobody can check.
+
+The commit says what the campaign *found*, not that a sync happened:
+
+```
+Measure the karma-xpu workload (render)
+
+campaign
+  aov_variant  +9.79%  p=3.72e-05  n=5  drift -1.82%  spread 2.70%  (beauty_only)
+
+New records (1):
+  optimize_20261105_065602.json
+```
 
 Only `measurements/` is committed, so any source edit you have in flight is
-left exactly as it was. To do it by hand:
+left exactly as it was — even if you have it *staged*. To refresh the copies
+without measuring anything:
 
 ```
 Sync-Measurements.bat            copy the records in and commit them

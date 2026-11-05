@@ -362,6 +362,24 @@ def _wsl_gpu_processes() -> List[str]:
     return found
 
 
+def _gpu_commit() -> Optional[Dict[int, float]]:
+    """The per-process GPU commit counter: {pid: MiB}.
+
+    A seam. The import is inside the function because v12 is a sibling
+    package that may not be importable, but the probe has to be testable
+    without a real card — and patching the module attribute is not enough,
+    because which `v12.baseline` gets imported depends on sys.path at the
+    moment of the call.
+    """
+    try:
+        if str(V12_DIR) not in sys.path:
+            sys.path.insert(0, str(V12_DIR))
+        from v12.baseline import _gpu_commit_by_pid
+        return _gpu_commit_by_pid()
+    except Exception:
+        return None
+
+
 def other_gpu_processes(threshold_mib: int = HEAVY_GPU_COMMIT_MIB) -> List[str]:
     """Heavy GPU processes that are NOT ours. The names, sorted.
 
@@ -378,16 +396,15 @@ def other_gpu_processes(threshold_mib: int = HEAVY_GPU_COMMIT_MIB) -> List[str]:
     WSL is probed separately — see _wsl_gpu_processes for why the Windows
     side cannot see it.
     """
-    try:
-        if str(V12_DIR) not in sys.path:
-            sys.path.insert(0, str(V12_DIR))
-        from v12.baseline import _gpu_commit_by_pid
-        commit = _gpu_commit_by_pid()
-    except Exception:
-        commit = None
+    commit = _gpu_commit()
     mine = my_process_tree()
     out = []
     if commit:
+        # Grouped by image name. One Nuke launch can be a dozen processes, and
+        # a list that says the same thing thirteen times is a log nobody can
+        # read — and the thing an operator needs to see is WHICH application
+        # holds the card, not how many of its processes there are.
+        groups: Dict[str, List[float]] = {}
         for pid, mib in commit.items():
             if pid in mine:
                 continue
@@ -400,7 +417,11 @@ def other_gpu_processes(threshold_mib: int = HEAVY_GPU_COMMIT_MIB) -> List[str]:
                 continue
             if mib < threshold_mib and not _render_app(name):
                 continue
-            out.append(f"{name}:{mib:.0f}MiB")
+            groups.setdefault(name, []).append(mib)
+        for name, mibs in groups.items():
+            total = sum(mibs)
+            count = f" x{len(mibs)}" if len(mibs) > 1 else ""
+            out.append(f"{name}{count}:{total:.0f}MiB")
     out.extend(_wsl_gpu_processes())
     return sorted(out)
 

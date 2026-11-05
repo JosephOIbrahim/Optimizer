@@ -20,6 +20,7 @@ The decision logic is factored out so it can be tested without a busy card.
 """
 from __future__ import annotations
 
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -162,3 +163,45 @@ class TestRealReading(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestContendersAreGroupedByApplication(unittest.TestCase):
+    """One Nuke launch can be a dozen processes.
+
+    A list that says the same thing fourteen times is a log nobody can read,
+    and the thing an operator needs to see is WHICH application holds the
+    card, not how many of its processes there are.
+    """
+
+    def _contenders(self, commit, image="app.exe"):
+        from unittest import mock
+        from harness import common
+        with mock.patch.object(common, "_gpu_commit",
+                               return_value=commit),              mock.patch.object(common, "_wsl_gpu_processes",
+                               return_value=[]),              mock.patch.object(common, "my_process_tree", return_value=set()),              mock.patch.object(common, "_render_app", return_value=True),              mock.patch("psutil.Process") as P:
+            P.return_value.name.return_value = image
+            return common.other_gpu_processes()
+
+    def test_processes_of_one_image_are_grouped(self):
+        """Fourteen Nuke processes become one entry."""
+        commit = {100: 0.0, 101: 0.0, 102: 0.0, 103: 1559.0}
+        out = self._contenders(commit, image="Nuke17.1.exe")
+        self.assertEqual(len(out), 1, out)
+        self.assertIn("x4", out[0], out[0])
+        self.assertIn("1559MiB", out[0], out[0])
+
+    def test_different_images_stay_separate(self):
+        """Two applications, two entries — grouping is by image, not by total."""
+        commit = {100: 100.0, 200: 200.0}
+        names = []
+        from unittest import mock
+        from harness import common
+        with mock.patch.object(common, "_gpu_commit",
+                               return_value=commit),              mock.patch.object(common, "_wsl_gpu_processes",
+                               return_value=[]),              mock.patch.object(common, "my_process_tree", return_value=set()),              mock.patch.object(common, "_render_app", return_value=True),              mock.patch("psutil.Process") as P:
+            P.return_value.name.side_effect = ["app.exe", "other.exe"]
+            out = common.other_gpu_processes()
+        self.assertEqual(len(out), 2, out)
+        # No count marker, because each image appears once. Checked as a
+        # PATTERN, not a substring: "app.exe" contains the letter x.
+        self.assertTrue(all(not re.search(r" x\d+:", o) for o in out), out)

@@ -1,18 +1,22 @@
 """
-Tests for the automatic sync in Optimize-The-4090.bat.
+Tests for how the measurement records reach the repository.
 
 Every campaign commits its measurement records, so the copies under
 `measurements/` — the evidence the operator cards cite — cannot go stale.
-This used to be a `--sync` flag; it is not optional now, because a record
-that is quoted in the cards and not committed is a claim nobody can check.
+This used to be a `--sync` flag, and before that a second commit made after
+the run by a separate batch file. Both are gone.
+
+Now the tool itself does it: `harness/optimize.py` writes the record, STAGES
+it while the run is still going, and then commits everything staged under
+`measurements/` in ONE commit whose message says what the campaign found. A
+commit that only says "sync the measurement records" tells a reader of the
+history nothing about what was measured.
 
 Three things this has to get right:
 
-  * the sync runs AFTER the campaign, not before, so it picks up the record
-    the campaign just wrote;
-  * it runs on EVERY campaign — from the command line and from the menu —
-    and it commits ONLY `measurements/`, so a source edit the operator has
-    in flight is left exactly as it was;
+  * the record is committed with the campaign, not in a second commit;
+  * ONLY `measurements/` is committed — the operator may have source edits
+    in flight, even staged, and those are not a measurement run's business;
   * every argument still arrives at the tool intact and in order, including
     a quoted path with spaces and a comma-separated --levers value. cmd.exe
     splits an argument on a COMMA before a batch file ever sees it, and
@@ -27,14 +31,20 @@ These drive the actual .bat with stand-ins, the way test_bat_parser.py does.
 """
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO))
+
+from harness import common, optimize, sync_measurements as sync  # noqa: E402
+
 BAT = REPO / "Optimize-The-4090.bat"
 
 #: A python stand-in for harness/optimize.py. It prints the arguments it
@@ -46,7 +56,8 @@ for a in sys.argv[1:]:
     print("ARG:" + a)
 '''
 
-#: A stand-in for Sync-Measurements.bat.
+#: A stand-in for Sync-Measurements.bat — still shipped, still usable by
+#: hand, but the launcher no longer calls it.
 SYNC_STANDIN = "@echo off\r\necho SYNCED\r\nexit /b 0\r\n"
 
 
@@ -80,39 +91,14 @@ class _Launcher:
         return [ln[4:] for ln in stdout.splitlines() if ln.startswith("ARG:")]
 
 
-class TestTheSyncAlwaysRuns(unittest.TestCase):
+class TestTheLauncherForwardsEverything(unittest.TestCase):
+    """The launcher is a thin wrapper now: it runs the tool and gets out of
+    the way. The tool does the committing."""
+
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="sync_wiring_"))
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.l = _Launcher(self.tmp)
-
-    def test_the_sync_runs_on_every_campaign(self):
-        """No flag. It is not optional."""
-        out = self.l.run("--request", "render")
-        self.assertIn("SYNCED", out)
-
-    def test_the_sync_runs_after_the_campaign(self):
-        """It has to pick up the record the campaign just wrote."""
-        out = self.l.run("--request", "render")
-        self.assertLess(out.index("HARNESS RAN"), out.index("SYNCED"),
-                        "the sync must run AFTER the campaign, not before")
-
-    def test_it_runs_whatever_the_request(self):
-        for request in ("render", "shot", "compute"):
-            with self.subTest(request=request):
-                out = self.l.run("--request", request)
-                self.assertIn("SYNCED", out)
-
-    def test_the_sync_flag_no_longer_exists(self):
-        """It was dropped, so passing it is an error — not a silent no-op."""
-        out = self.l.run("--request", "render", "--sync")
-        # The launcher forwards everything, so --sync reaches the tool, which
-        # does not know it.
-        self.assertIn("--sync", self.l.args(out),
-                      "the launcher should no longer consume --sync")
-        self.assertNotIn("unrecognized", out,
-                         "the stand-in accepts anything, so this only checks "
-                         "that the flag is forwarded rather than swallowed")
 
     def test_every_flag_still_arrives(self):
         args = self.l.args(self.l.run("--request", "render", "--frames", "5",
@@ -147,6 +133,12 @@ class TestTheSyncAlwaysRuns(unittest.TestCase):
         self.assertEqual(args[args.index("--reps") + 1], "9")
         self.assertEqual(args[args.index("--levers") + 1], "aov_variant")
 
+    def test_the_sync_flag_no_longer_exists(self):
+        """It was dropped, so passing it is an error — not a silent no-op."""
+        out = self.l.run("--request", "render", "--sync")
+        self.assertIn("--sync", self.l.args(out),
+                      "the launcher should no longer consume --sync")
+
     def test_the_usage_text_no_longer_advertises_the_flag(self):
         text = BAT.read_text(encoding="utf-8", errors="replace")
         # The LABEL, not the `goto :usage` reference that appears earlier.
@@ -156,18 +148,148 @@ class TestTheSyncAlwaysRuns(unittest.TestCase):
         self.assertIn("commits its measurement records", usage)
 
 
-class TestTheSyncRunsAfterTheRealCampaign(unittest.TestCase):
-    """The end-to-end shape: a campaign writes a record, then the sync picks
-    it up and commits it — without touching anything else."""
+class _Sandbox:
+    """A throwaway git repository with its own store and measurements dir."""
+
+    def __init__(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="campaign_"))
+        self.repo = self.tmp / "repo"
+        self.repo.mkdir()
+        self.store = self.tmp / "store"
+        self.store.mkdir()
+        (self.repo / "measurements").mkdir()
+        (self.repo / "harness").mkdir()
+        (self.repo / "harness" / "levers.py").write_text("x = 1\n", encoding="utf-8")
+        self._git("init", "-b", "main")
+        self._git("config", "user.name", "t")
+        self._git("config", "user.email", "t@x.invalid")
+        self._git("add", "-A")
+        self._git("commit", "-m", "initial")
+
+    def _git(self, *args: str) -> str:
+        return subprocess.run(["git", *args], cwd=str(self.repo),
+                              capture_output=True, text=True).stdout
+
+    def cleanup(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+
+class TestTheCampaignCommitsOneCommit(unittest.TestCase):
+    """The campaign's record and anything else that changed, in ONE commit."""
 
     def setUp(self):
-        self.tmp = Path(tempfile.mkdtemp(prefix="sync_e2e_"))
-        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.sb = _Sandbox()
+        self.addCleanup(self.sb.cleanup)
+        # Point the tool at the sandbox. The repo root is where the record is
+        # committed; the store is where the record is written.
+        p = mock.patch.object(common, "REPO_ROOT", self.sb.repo)
+        p.start(); self.addCleanup(p.stop)
+        p = mock.patch.object(common, "MEASURE_ROOT", self.sb.store)
+        p.start(); self.addCleanup(p.stop)
+        p = mock.patch.object(sync, "DEST", self.sb.repo / "measurements")
+        p.start(); self.addCleanup(p.stop)
+        p = mock.patch.object(sync, "SOURCE", self.sb.store)
+        p.start(); self.addCleanup(p.stop)
+
+    def _campaign_record(self) -> dict:
+        return {
+            "request": "render",
+            "objective": "karma-xpu",
+            "results": {
+                "aov_variant": {
+                    "ok": True, "effect": 0.0979, "p_value": 3.72e-05,
+                    "n_baseline": 5.0, "drift": -0.0182, "control_spread": 0.027,
+                    "contention_events": 0, "variant": "beauty_only",
+                }
+            },
+        }
+
+    def _write_record(self, name: str, payload: dict) -> Path:
+        p = self.sb.store / name
+        p.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        return p
+
+    def test_the_campaign_record_is_committed(self):
+        rec = self._write_record("optimize_20261105_120000.json",
+                                  self._campaign_record())
+        optimize._commit_the_campaign(rec, [], [])
+        committed = self.sb._git("show", "--name-only", "--format=", "HEAD")
+        self.assertIn("measurements/optimize_20261105_120000.json", committed)
+
+    def test_it_is_one_commit_not_two(self):
+        """The point of staging during the run: the campaign's record and the
+        rest land together, in a commit that says what was measured."""
+        rec = self._write_record("optimize_20261105_120000.json",
+                                  self._campaign_record())
+        before = len(self.sb._git("log", "--oneline").strip().splitlines())
+        optimize._commit_the_campaign(rec, [], [])
+        after = len(self.sb._git("log", "--oneline").strip().splitlines())
+        self.assertEqual(after, before + 1, "exactly one new commit")
+
+    def test_the_commit_message_says_what_the_campaign_found(self):
+        rec = self._write_record("optimize_20261105_120000.json",
+                                  self._campaign_record())
+        optimize._commit_the_campaign(rec, [], [])
+        message = self.sb._git("log", "-1", "--format=%B")
+        self.assertIn("karma-xpu", message)
+        self.assertIn("aov_variant", message)
+        self.assertIn("9.79", message)
+        self.assertNotIn("Sync the measurement records", message,
+                         "the commit should describe the campaign, not the "
+                         "housekeeping")
+
+    def test_an_edited_record_lands_in_the_same_commit(self):
+        """A retraction edits a record in place. It belongs with the campaign,
+        not in a second commit."""
+        name = "levers_20261103_221724.json"
+        self._write_record(name, {"verdict": "ADMIT +16.91%"})
+        shutil.copy2(self.sb.store / name, self.sb.repo / "measurements" / name)
+        self.sb._git("add", "-A")
+        self.sb._git("commit", "-m", "add the old record")
+        # Now the retraction lands.
+        self._write_record(name, {"verdict": "RETRACTED - was: ADMIT +16.91%"})
+        rec = self._write_record("optimize_20261105_120000.json",
+                                  self._campaign_record())
+        before = len(self.sb._git("log", "--oneline").strip().splitlines())
+        optimize._commit_the_campaign(rec, [], [])
+        after = len(self.sb._git("log", "--oneline").strip().splitlines())
+        self.assertEqual(after, before + 1)
+        committed = self.sb._git("show", "--name-only", "--format=", "HEAD")
+        self.assertIn("measurements/optimize_20261105_120000.json", committed)
+        self.assertIn("measurements/levers_20261103_221724.json", committed)
+
+    def test_the_operators_staged_source_edit_is_not_swept_in(self):
+        """Even if the operator has it STAGED, it is not a measurement
+        run's business."""
+        (self.sb.repo / "harness" / "levers.py").write_text("x = 2\n", encoding="utf-8")
+        self.sb._git("add", "--", "harness/levers.py")
+        rec = self._write_record("optimize_20261105_120000.json",
+                                  self._campaign_record())
+        optimize._commit_the_campaign(rec, [], [])
+        committed = self.sb._git("show", "--name-only", "--format=", "HEAD")
+        self.assertNotIn("harness/levers.py", committed,
+                         "the operator's staged edit must not be swept in")
+        staged = self.sb._git("diff", "--cached", "--name-only")
+        self.assertIn("harness/levers.py", staged,
+                      "and it must still be staged, exactly as it was")
+
+    def test_a_failed_commit_does_not_lose_the_record(self):
+        """The measurement already happened and its record is already on E:.
+        A repository that will not take a commit must not lose the result."""
+        rec = self._write_record("optimize_20261105_120000.json",
+                                  self._campaign_record())
+        with mock.patch.object(sync, "commit_staged",
+                               return_value=(False, "git commit failed: nope")):
+            optimize._commit_the_campaign(rec, [], [])
+        # The record is still on the store, and still in the repo copy.
+        self.assertTrue(rec.exists())
+        self.assertTrue((self.sb.repo / "measurements" /
+                         rec.name).exists())
 
     def test_the_real_repository_is_never_reached(self):
         """A guard on the guard.
 
-        An earlier version of this test pointed at the REAL sync module
+        An earlier version of these tests pointed at the REAL sync module
         instead of a sandboxed copy, and committed a fake record into the
         real repository. The test is supposed to prove the sync is safe;
         it must not itself be the thing that breaks the repository.
@@ -181,117 +303,6 @@ class TestTheSyncRunsAfterTheRealCampaign(unittest.TestCase):
         stray = list((REPO / "measurements").glob("optimize_20261105_120000.json"))
         self.assertEqual(stray, [],
                          "a fake record landed in the real repository")
-
-    def test_a_record_written_by_the_campaign_ends_up_committed(self):
-        """The whole point: no staleness."""
-        store = self.tmp / "store"
-        store.mkdir()
-        repo = self.tmp / "repo"
-        repo.mkdir()
-        (repo / "measurements").mkdir()
-        (repo / "harness").mkdir()
-        (repo / "harness" / "levers.py").write_text("x = 1\n", encoding="utf-8")
-        subprocess.run(["git", "init", "-b", "main"], cwd=repo, capture_output=True)
-        subprocess.run(["git", "config", "user.name", "t"], cwd=repo, capture_output=True)
-        subprocess.run(["git", "config", "user.email", "t@x.invalid"], cwd=repo,
-                       capture_output=True)
-        subprocess.run(["git", "add", "-A"], cwd=repo, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "initial"], cwd=repo, capture_output=True)
-        # The operator has a source edit in flight.
-        (repo / "harness" / "levers.py").write_text("x = 2\n", encoding="utf-8")
-
-        # A stand-in harness that writes a record into the fake store.
-        echo = self.tmp / "echo.py"
-        echo.write_text(
-            "import json, pathlib, sys\n"
-            f"p = pathlib.Path(r'{store}') / 'optimize_20261105_120000.json'\n"
-            "p.write_text(json.dumps({'request':'render','results':{}}))\n"
-            "for a in sys.argv[1:]: print('ARG:'+a)\n",
-            encoding="utf-8")
-
-        text = BAT.read_text(encoding="utf-8", errors="replace")
-        text = text.replace(r'"%PY%" "%REPO%\harness\optimize.py"',
-                            f'"{sys.executable}" "{echo}"')
-        text = text.replace(r'set "REPO=C:\Users\User\OneDrive\Desktop\Optimizer"',
-                            f'set "REPO={repo}"')
-        text = text.replace("pause >nul", "rem no pause")
-        # The launcher calls Sync-Measurements.bat. Point that at the SANDBOX
-        # copy of the sync, with the fake store — never the real one.
-        sync_src = (REPO / "harness" / "sync_measurements.py").read_text(encoding="utf-8")
-        sync_src = sync_src.replace('REPO_ROOT = HERE.parent',
-                                    f'REPO_ROOT = pathlib.Path(r"{repo}")')
-        sync_src = sync_src.replace('DEST = REPO_ROOT / "measurements"',
-                                    f'DEST = pathlib.Path(r"{repo}") / "measurements"')
-        sync_src = sync_src.replace("from pathlib import Path",
-                                    "import pathlib\nfrom pathlib import Path")
-        (repo / "harness" / "sync_measurements.py").write_text(sync_src, encoding="utf-8")
-        text = text.replace(r'call "%REPO%\Sync-Measurements.bat" /nopause',
-                            f'"{sys.executable}" "{repo / "harness" / "sync_measurements.py"}" --source "{store}"')
-        out = repo / "bat.bat"
-        out.write_text(text, encoding="utf-8")
-
-        r = subprocess.run(["cmd", "/c", str(out), "--request", "render"],
-                           capture_output=True, text=True, timeout=120)
-        self.assertIn("copied 1 record(s)", r.stdout,
-                      f"the sync should have copied the new record: {r.stdout}")
-
-        # The record is committed.
-        committed = subprocess.run(["git", "show", "--name-only", "--format=", "HEAD"],
-                                  cwd=repo, capture_output=True, text=True).stdout
-        self.assertIn("measurements/optimize_20261105_120000.json", committed)
-        # And the operator's source edit is NOT in that commit.
-        self.assertNotIn("harness/levers.py", committed)
-        # And it is still uncommitted, exactly as it was.
-        status = subprocess.run(["git", "status", "--short"], cwd=repo,
-                                capture_output=True, text=True).stdout
-        self.assertIn("harness/levers.py", status)
-
-
-class TestTheMenuPath(unittest.TestCase):
-    """Choosing from the menu must reach the tool and sync afterwards.
-
-    The menu calls the run label with the request as its own arguments, so
-    this path has to keep working after the sync was wired in.
-    """
-
-    def setUp(self):
-        self.tmp = Path(tempfile.mkdtemp(prefix="sync_menu_"))
-        self.addCleanup(shutil.rmtree, self.tmp, True)
-
-    def _menu_run(self, choice: str) -> str:
-        tmp = self.tmp
-        echo = tmp / "echo.py"
-        echo.write_text(ECHO, encoding="utf-8")
-        (tmp / "Sync-Measurements.bat").write_text(SYNC_STANDIN, encoding="utf-8")
-        text = BAT.read_text(encoding="utf-8", errors="replace")
-        text = text.replace(r'"%PY%" "%REPO%\harness\optimize.py"',
-                            f'"{sys.executable}" "{echo}"')
-        text = text.replace(r'set "REPO=C:\Users\User\OneDrive\Desktop\Optimizer"',
-                            f'set "REPO={tmp}"')
-        text = text.replace("pause >nul", "rem no pause")
-        text = text.replace('set /p "choice=   Choose a request:  "',
-                            f'set "choice={choice}"')
-        # Break only the menu's OWN loop — the last "goto :menu", which is the
-        # one after a run. The earlier one is the ENTRY into the menu, and
-        # replacing that would skip the menu entirely.
-        head, _, tail = text.rpartition("goto :menu")
-        text = head + "goto :end" + tail
-        out = tmp / "bat.bat"
-        out.write_text(text, encoding="utf-8")
-        r = subprocess.run(["cmd", "/c", str(out)],
-                           capture_output=True, text=True, timeout=90)
-        return r.stdout
-
-    def test_a_menu_choice_reaches_the_tool(self):
-        out = self._menu_run("4")
-        args = _Launcher.args(out)
-        self.assertEqual(args, ["--request", "profile"])
-
-    def test_the_sync_runs_after_a_menu_run(self):
-        out = self._menu_run("4")
-        self.assertIn("SYNCED", out)
-        self.assertLess(out.index("HARNESS RAN"), out.index("SYNCED"),
-                        "the sync must run AFTER the campaign, not before")
 
 
 if __name__ == "__main__":
