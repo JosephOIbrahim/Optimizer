@@ -1,0 +1,39 @@
+{
+  "request": "render",
+  "objective": "karma-xpu",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "617.42",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "aov_variant": {
+      "n_baseline": 5.0,
+      "n_candidate": 5.0,
+      "baseline_mean": 47.614,
+      "candidate_mean": 43.236000000000004,
+      "effect": 0.09194774646112473,
+      "min_effect": 0.05,
+      "paired": 1.0,
+      "p_value": 8.583816393203936e-05,
+      "guardrail_ssim": -0.0011687787392920873,
+      "variant": "beauty_only",
+      "ok": true,
+      "why": "+9.19% improvement, p=8.584e-05, n=5/5 \u2014 clears both significance and effect size",
+      "drift": 0.014471164077463284
+    }
+  },
+  "recorded_utc": "2026-11-04T15:36:05Z",
+  "superseded": {
+    "date": "2026-11-05",
+    "reason": "SUPERSEDED 2026-11-05. This measurement was taken while a WSL benchmark held the card - the per-repetition contention check did not exist yet, so the competitor was invisible to it - and the drift gate, which only sees the control, recorded +1.45% and did not catch it. Re-measured on 2026-11-04 at 23:19 with both arms alternately in one session on a card verified idle by process identity: ADMIT +9.79% (paired, n=5/5, p=3.723e-05, baseline drift -1.82%, zero contention events) in optimize_20261104_231946.json. The lever is real and the two runs agree within 0.6 points, so the effect is +9.5% +/- 0.3; this record is the earlier, contended one and is kept in the chain for the record. Superseded, not deleted - the numbers are real measurements of a real machine and stay readable."
+  }
+}

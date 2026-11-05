@@ -1,0 +1,384 @@
+{
+  "harness": "gemm",
+  "label": "baseline",
+  "n": 8192,
+  "iters": 150,
+  "device": "NVIDIA GeForce RTX 4090",
+  "torch": "2.14.1+cu130",
+  "cuda": "13.0",
+  "results": {
+    "fp16": {
+      "tflops": [
+        158.59466197363935,
+        159.77893839847363,
+        160.19475140308347,
+        158.69730368642436,
+        161.12643224425588,
+        157.68860085735304
+      ],
+      "summary": {
+        "n": 6.0,
+        "mean": 159.34678142720495,
+        "median": 159.238121042449,
+        "min": 157.68860085735304,
+        "max": 161.12643224425588,
+        "stdev": 1.2498029899846834,
+        "cv": 0.007843289828578284
+      },
+      "throttle": [
+        {
+          "wall_s": 1.055941200000234,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 425.7670786970907,
+          "sm_clock_mhz_after": 2535.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.0430369999958202,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.05792190305832113,
+          "avg_power_w": 467.7379613589499,
+          "sm_clock_mhz_after": 2535.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.0405592999886721,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 445.76988548855377,
+          "sm_clock_mhz_after": 2625.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.0506826000055298,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.01912901955347335,
+          "avg_power_w": 462.8771809844765,
+          "sm_clock_mhz_after": 2610.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.0346568999812007,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.15709332823562405,
+          "avg_power_w": 460.668652582958,
+          "sm_clock_mhz_after": 2595.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.058546899992507,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.09266245265154933,
+          "avg_power_w": 454.79137485869336,
+          "sm_clock_mhz_after": 2505.0,
+          "power_limit_w": 450.0
+        }
+      ]
+    },
+    "bf16": {
+      "tflops": [
+        139.3028723329296,
+        138.12768110809895,
+        139.34726786016122,
+        138.0384198231784,
+        138.24473595482291,
+        138.82137139394038
+      ],
+      "summary": {
+        "n": 6.0,
+        "mean": 138.64705807885525,
+        "median": 138.53305367438165,
+        "min": 138.0384198231784,
+        "max": 139.34726786016122,
+        "stdev": 0.592085679781376,
+        "cv": 0.00427045252878448
+      },
+      "throttle": [
+        {
+          "wall_s": 1.1985421000281349,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 443.09665883871213,
+          "sm_clock_mhz_after": 2610.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.2055263000074772,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 435.79140496291245,
+          "sm_clock_mhz_after": 2685.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.1993618999840692,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 438.93757172625936,
+          "sm_clock_mhz_after": 2580.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.2059409000212327,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 476.07059350080243,
+          "sm_clock_mhz_after": 2625.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.2086941999732517,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 441.6923652085155,
+          "sm_clock_mhz_after": 2580.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.2000033000367694,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 454.0604179866043,
+          "sm_clock_mhz_after": 2580.0,
+          "power_limit_w": 450.0
+        }
+      ]
+    },
+    "tf32": {
+      "tflops": [
+        87.38122222169955,
+        87.32033427744673,
+        87.303287363777,
+        87.10925260588502,
+        87.60602071184698,
+        87.23670274667415
+      ],
+      "summary": {
+        "n": 6.0,
+        "mean": 87.3261366545549,
+        "median": 87.31181082061187,
+        "min": 87.10925260588502,
+        "max": 87.60602071184698,
+        "stdev": 0.16550672333735772,
+        "cv": 0.0018952713320190713
+      },
+      "throttle": [
+        {
+          "wall_s": 1.8984775999560952,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 447.6334090113327,
+          "sm_clock_mhz_after": 2820.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.8999319999711588,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 435.4466370441462,
+          "sm_clock_mhz_after": 2820.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.9002334999968298,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 441.78465436031973,
+          "sm_clock_mhz_after": 2835.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.909902299987152,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 450.8906031506392,
+          "sm_clock_mhz_after": 2820.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.8974843000178225,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 441.88402507052336,
+          "sm_clock_mhz_after": 2805.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.906847000005655,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.0,
+          "avg_power_w": 446.5507720322998,
+          "sm_clock_mhz_after": 2805.0,
+          "power_limit_w": 450.0
+        }
+      ]
+    },
+    "fp32": {
+      "tflops": [
+        54.795960230691165,
+        54.730668942542735,
+        54.804663910375766,
+        54.60857716429491,
+        54.89028737143995,
+        54.61422816899771
+      ],
+      "summary": {
+        "n": 6.0,
+        "mean": 54.7407309647237,
+        "median": 54.76331458661695,
+        "min": 54.60857716429491,
+        "max": 54.89028737143995,
+        "stdev": 0.11231530682286073,
+        "cv": 0.0020517684883535722
+      },
+      "throttle": [
+        {
+          "wall_s": 3.021074399992358,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.9893672476280495,
+          "avg_power_w": 444.29988218873234,
+          "sm_clock_mhz_after": 2295.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 3.030124999990221,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.9752913031672084,
+          "avg_power_w": 443.48599480362583,
+          "sm_clock_mhz_after": 2340.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 3.0207863000105135,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.9788379985667007,
+          "avg_power_w": 447.3312130670405,
+          "sm_clock_mhz_after": 2355.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 3.0789059000089765,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.9633207224655203,
+          "avg_power_w": 442.7371424362225,
+          "sm_clock_mhz_after": 2325.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 3.0175325999734923,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.9799355884426819,
+          "avg_power_w": 442.4124531452377,
+          "sm_clock_mhz_after": 2295.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 3.032661500037648,
+          "source": "nvml",
+          "reliability_frac": 0.0,
+          "thermal_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "power_frac": 0.9897266226259472,
+          "avg_power_w": 443.2004692852514,
+          "sm_clock_mhz_after": 2340.0,
+          "power_limit_w": 450.0
+        }
+      ]
+    }
+  },
+  "recorded_utc": "2026-11-03T23:42:22Z"
+}

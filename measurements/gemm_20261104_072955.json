@@ -1,0 +1,146 @@
+{
+  "harness": "gemm",
+  "label": "power600",
+  "n": 8192,
+  "iters": 150,
+  "device": "NVIDIA GeForce RTX 4090",
+  "torch": "2.14.1+cu130",
+  "cuda": "13.0",
+  "results": {
+    "fp16": {
+      "tflops": [
+        174.9766691346092,
+        174.16477473902205,
+        174.82761670484862,
+        174.40076949133055
+      ],
+      "summary": {
+        "n": 4.0,
+        "mean": 174.5924575174526,
+        "median": 174.61419309808957,
+        "min": 174.16477473902205,
+        "max": 174.9766691346092,
+        "stdev": 0.3753111013987809,
+        "cv": 0.0021496409795438275
+      },
+      "throttle": [
+        {
+          "wall_s": 0.9536592999938875,
+          "source": "nvml",
+          "thermal_frac": 0.0,
+          "power_frac": 0.0,
+          "reliability_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "avg_power_w": 603.5887239852739,
+          "sm_clock_mhz_after": 2865.0,
+          "power_limit_w": 600.0
+        },
+        {
+          "wall_s": 0.9582270000828431,
+          "source": "nvml",
+          "thermal_frac": 0.0,
+          "power_frac": 0.0,
+          "reliability_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "avg_power_w": 601.25419128264,
+          "sm_clock_mhz_after": 2850.0,
+          "power_limit_w": 600.0
+        },
+        {
+          "wall_s": 0.9576089000329375,
+          "source": "nvml",
+          "thermal_frac": 0.0,
+          "power_frac": 0.0,
+          "reliability_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "avg_power_w": 538.4567749759474,
+          "sm_clock_mhz_after": 2850.0,
+          "power_limit_w": 600.0
+        },
+        {
+          "wall_s": 0.9567314999876545,
+          "source": "nvml",
+          "thermal_frac": 0.0,
+          "power_frac": 0.0,
+          "reliability_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "avg_power_w": 547.7095716057867,
+          "sm_clock_mhz_after": 2850.0,
+          "power_limit_w": 600.0
+        }
+      ]
+    },
+    "fp32": {
+      "tflops": [
+        88.7126027514958,
+        88.32690509917278,
+        88.67384905136204,
+        88.42819423298302
+      ],
+      "summary": {
+        "n": 4.0,
+        "mean": 88.53538778375341,
+        "median": 88.55102164217253,
+        "min": 88.32690509917278,
+        "max": 88.7126027514958,
+        "stdev": 0.18755635110230703,
+        "cv": 0.002118433722348527
+      },
+      "throttle": [
+        {
+          "wall_s": 1.8743098999839278,
+          "source": "nvml",
+          "thermal_frac": 0.0,
+          "power_frac": 0.0,
+          "reliability_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "avg_power_w": 464.1884461088641,
+          "sm_clock_mhz_after": 2865.0,
+          "power_limit_w": 600.0
+        },
+        {
+          "wall_s": 1.8790691000176594,
+          "source": "nvml",
+          "thermal_frac": 0.0,
+          "power_frac": 0.0,
+          "reliability_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "avg_power_w": 463.0766372518298,
+          "sm_clock_mhz_after": 2865.0,
+          "power_limit_w": 600.0
+        },
+        {
+          "wall_s": 1.8707946999929845,
+          "source": "nvml",
+          "thermal_frac": 0.0,
+          "power_frac": 0.0,
+          "reliability_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "avg_power_w": 458.96805245557937,
+          "sm_clock_mhz_after": 2865.0,
+          "power_limit_w": 600.0
+        },
+        {
+          "wall_s": 1.8803684000158682,
+          "source": "nvml",
+          "thermal_frac": 0.0,
+          "power_frac": 0.0,
+          "reliability_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "avg_power_w": 464.1760625165975,
+          "sm_clock_mhz_after": 2865.0,
+          "power_limit_w": 600.0
+        }
+      ]
+    }
+  },
+  "recorded_utc": "2026-11-04T12:29:55Z"
+}

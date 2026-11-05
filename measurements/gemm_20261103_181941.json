@@ -1,0 +1,53 @@
+{
+  "harness": "gemm",
+  "label": "smoke",
+  "n": 8192,
+  "iters": 150,
+  "device": "NVIDIA GeForce RTX 4090",
+  "torch": "2.14.1+cu130",
+  "cuda": "13.0",
+  "results": {
+    "fp16": {
+      "tflops": [
+        159.74283362498275,
+        159.99741578045828
+      ],
+      "summary": {
+        "n": 2.0,
+        "mean": 159.87012470272052,
+        "median": 159.87012470272052,
+        "min": 159.74283362498275,
+        "max": 159.99741578045828,
+        "stdev": 0.1800167685058367,
+        "cv": 0.0011260188158392882
+      },
+      "throttle": [
+        {
+          "wall_s": 1.0482769000227563,
+          "source": "nvml",
+          "thermal_frac": 0.0,
+          "power_frac": 0.0,
+          "reliability_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "avg_power_w": 464.6510859768314,
+          "sm_clock_mhz_after": 2535.0,
+          "power_limit_w": 450.0
+        },
+        {
+          "wall_s": 1.0421404999797232,
+          "source": "nvml",
+          "thermal_frac": 0.0,
+          "power_frac": 0.0,
+          "reliability_frac": 0.0,
+          "sync_boost_frac": 0.0,
+          "board_limit_frac": 0.0,
+          "avg_power_w": 429.1072077217044,
+          "sm_clock_mhz_after": 2535.0,
+          "power_limit_w": 450.0
+        }
+      ]
+    }
+  },
+  "recorded_utc": "2026-11-03T23:19:41Z"
+}

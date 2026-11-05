@@ -1,0 +1,101 @@
+{
+  "objective": "render",
+  "baseline": "E:\\OptimizerV12\\measurements\\render_20261103_184125.json",
+  "baseline_mean_s": 54.426,
+  "results": [
+    {
+      "lever": "husk_threads",
+      "variant": 8,
+      "label": "husk_j8",
+      "verdict": "RETRACTED \u2014 was: DENY  (-38.38%)  effect -38.38% is below the 5.0% threshold this objective requires",
+      "mean_s": 75.312,
+      "file": "E:\\OptimizerV12\\measurements\\render_20261103_191154.json",
+      "v12_key": null,
+      "retracted": {
+        "date": "2026-11-05",
+        "reason": "RETRACTED 2026-11-05. Same shared defect as its sibling husk_j48: this verdict was gated against a baseline measured at 18:41, 48 minutes before the candidates, under a different set of resident processes, and that baseline is superseded baseline f6d1f3438614 - it cannot serve as a control, so the comparison it supported was never a comparison of two configurations. No statistical gate could have caught it: Welch's t-test on two independent series attributes the drift to the candidate, which is exactly what 'independent' means. The number this verdict reports is therefore not the effect of the thread count. Re-measured with both arms alternately in one session, the thread lever is worth nothing on this box.",
+        "original_verdict": "DENY  (-38.38%)  effect -38.38% is below the 5.0% threshold this objective requires",
+        "replacement_measurement": "E:\\OptimizerV12\\measurements\\optimize_20261105_055223.json",
+        "replacement_verdict": "DENY (-0.60%), paired, n=5/5, baseline drift -0.28%, zero contention events - the thread count makes no difference on this box. NOTE: that measurement is the default-versus--j48 comparison, which is the variant husk_j48 was re-measured at; -j8 itself was never re-measured, so no single replacement covers this exact variant. What the replacement does establish is that the lever as a whole is worth nothing, so the -38.38% this verdict reported is not the thread count's effect.",
+        "original_mean_s": 75.312
+      }
+    },
+    {
+      "lever": "husk_threads",
+      "variant": 16,
+      "label": "husk_j16",
+      "verdict": "RETRACTED \u2014 was: DENY  (-8.02%)  effect -8.02% is below the 5.0% threshold this objective requires",
+      "mean_s": 58.79200000000001,
+      "file": "E:\\OptimizerV12\\measurements\\render_20261103_191826.json",
+      "v12_key": null,
+      "retracted": {
+        "date": "2026-11-05",
+        "reason": "RETRACTED 2026-11-05. Same shared defect as its sibling husk_j48: this verdict was gated against a baseline measured at 18:41, 48 minutes before the candidates, under a different set of resident processes, and that baseline is superseded baseline f6d1f3438614 - it cannot serve as a control, so the comparison it supported was never a comparison of two configurations. No statistical gate could have caught it: Welch's t-test on two independent series attributes the drift to the candidate, which is exactly what 'independent' means. The number this verdict reports is therefore not the effect of the thread count. Re-measured with both arms alternately in one session, the thread lever is worth nothing on this box.",
+        "original_verdict": "DENY  (-8.02%)  effect -8.02% is below the 5.0% threshold this objective requires",
+        "replacement_measurement": "E:\\OptimizerV12\\measurements\\optimize_20261105_055223.json",
+        "replacement_verdict": "DENY (-0.60%), paired, n=5/5, baseline drift -0.28%, zero contention events - the thread count makes no difference on this box. NOTE: that measurement is the default-versus--j48 comparison, which is the variant husk_j48 was re-measured at; -j16 itself was never re-measured, so no single replacement covers this exact variant. What the replacement does establish is that the lever as a whole is worth nothing, so the -8.02% this verdict reported is not the thread count's effect.",
+        "original_mean_s": 58.79200000000001
+      }
+    },
+    {
+      "lever": "husk_threads",
+      "variant": 24,
+      "label": "husk_j24",
+      "verdict": "RETRACTED \u2014 was: DENY  (+3.15%)  effect +3.15% is below the 5.0% threshold this objective requires",
+      "mean_s": 52.712,
+      "file": "E:\\OptimizerV12\\measurements\\render_20261103_192419.json",
+      "v12_key": null,
+      "retracted": {
+        "date": "2026-11-05",
+        "reason": "RETRACTED 2026-11-05. Same shared defect as its sibling husk_j48: this verdict was gated against a baseline measured at 18:41, 48 minutes before the candidates, under a different set of resident processes, and that baseline is superseded baseline f6d1f3438614 - it cannot serve as a control, so the comparison it supported was never a comparison of two configurations. No statistical gate could have caught it: Welch's t-test on two independent series attributes the drift to the candidate, which is exactly what 'independent' means. This verdict is the most misleading of the three because it reads as +3.15% - a near-threshold result that looks like a decision - when it is gated on a withdrawn control: against the contemporaneous 19:37 default (render_20261103_193741.json, mean 48.06 s, itself superseded) the same candidate mean of 52.712 s is about -9.68%, a clear LOSS rather than a near-miss win. The number this verdict reports is therefore not the effect of the thread count. Re-measured with both arms alternately in one session, the thread lever is worth nothing on this box.",
+        "original_verdict": "DENY  (+3.15%)  effect +3.15% is below the 5.0% threshold this objective requires",
+        "replacement_measurement": "E:\\OptimizerV12\\measurements\\optimize_20261105_055223.json",
+        "replacement_verdict": "DENY (-0.60%), paired, n=5/5, baseline drift -0.28%, zero contention events - the thread count makes no difference on this box. NOTE: that measurement is the default-versus--j48 comparison, which is the variant husk_j48 was re-measured at; -j24 itself was never re-measured, so no single replacement covers this exact variant. What the replacement does establish is that the lever as a whole is worth nothing, so the +3.15% this verdict reported is not the thread count's effect.",
+        "original_mean_s": 52.712
+      }
+    },
+    {
+      "lever": "husk_threads",
+      "variant": 48,
+      "label": "husk_j48",
+      "verdict": "RETRACTED \u2014 was: ADMIT  (+12.34%)  +12.34% improvement, p=1.882e-05, n=5/5 \u2014 clears both significance and effect size",
+      "mean_s": 47.709999999999994,
+      "file": "E:\\OptimizerV12\\measurements\\render_20261103_192945.json",
+      "v12_key": null,
+      "retracted": {
+        "date": "2026-11-04",
+        "reason": "RETRACTED 2026-11-04. This verdict was not a comparison of anything. The candidate was measured at 19:29 and gated against a baseline measured at 18:41 - 48 minutes earlier, under a different set of resident processes. The difference between the two numbers described two different machine states, and was charged to the candidate. No statistical gate could have caught it: Welch's t-test on two independent series attributes the drift to the candidate, which is exactly what 'independent' means. Re-measured on 2026-11-04 with both arms alternately in one session (harness/levers.py, husk_threads lever), the same change is DENY -0.89% - it was never a win.",
+        "original_verdict": "ADMIT  (+12.34%)  +12.34% improvement, p=1.882e-05, n=5/5 \u2014 clears both significance and effect size",
+        "original_mean_s": 47.709999999999994,
+        "replacement_measurement": "E:\\OptimizerV12\\measurements\\optimize_20261105_055223.json",
+        "replacement_verdict": "DENY (-0.60%), paired, n=5/5, baseline drift -0.28%, zero contention events - the thread count makes no difference on this box",
+        "replacement_history": [
+          {
+            "date": "2026-11-04",
+            "measurement": "E:\\OptimizerV12\\measurements\\optimize_20261104_111511.json",
+            "verdict": "DENY (-0.89%), paired, n=5, baseline drift +1.96%",
+            "superseded_because": "RE-MEASURED 2026-11-05 at 05:52, with the WSL-aware contention detector and the per-repetition quiet gate that the husk_threads lever had been MISSING (it was the one lever with no quiet_check - the lever that produced the phantom was also the one with the least protection). Both arms measured alternately in one session on a card verified idle by process identity: DENY, -0.60% (paired, n=5/5, baseline drift -0.28%, baseline cv 0.25%, zero contention events, ssim guardrail baseline 0.9964 vs candidate 0.9951). The 11:11 figure was -0.89% at +1.96% drift; this one is -0.60% at -0.28% drift. Both are DENY, and the effect is indistinguishable from zero either way: the default thread count and -j 48 are the same thing on a 48-thread box, so the difference that IS visible between repetitions (-0.74%, +0.09%, +0.13%, +0.19%, +4.0% across the five pairs) is the renderer's own run-to-run noise, not the thread count. The +12.34% this verdict reported was drift between sessions and was never a win."
+          }
+        ],
+        "replacement_updated": "2026-11-05",
+        "reason_corrected": {
+          "date": "2026-11-05",
+          "reason": "RE-MEASURED 2026-11-05 at 05:52, with the WSL-aware contention detector and the per-repetition quiet gate that the husk_threads lever had been MISSING (it was the one lever with no quiet_check - the lever that produced the phantom was also the one with the least protection). Both arms measured alternately in one session on a card verified idle by process identity: DENY, -0.60% (paired, n=5/5, baseline drift -0.28%, baseline cv 0.25%, zero contention events, ssim guardrail baseline 0.9964 vs candidate 0.9951). The 11:11 figure was -0.89% at +1.96% drift; this one is -0.60% at -0.28% drift. Both are DENY, and the effect is indistinguishable from zero either way: the default thread count and -j 48 are the same thing on a 48-thread box. The per-pair differences in SECONDS were -0.74, +0.09, +0.13, +0.08, +1.73 (mean +0.258 s, i.e. -0.60%): THREE pairs inside 0.2 s of zero and TWO outliers, which is the renderer's own run-to-run noise, not the thread count. (Corrected 2026-11-05: the earlier text said 'four pairs inside 0.2 s of zero and one outlier'. The count was wrong - of the five differences -0.74, +0.09, +0.13, +0.08, +1.73, three fall inside 0.2 s of zero (+0.09, +0.13, +0.08) and two fall outside (-0.74, +1.73). The measured figures are unchanged; only the miscount is corrected, and the earlier wording stays readable in the correction chain.) The +12.34% this verdict reported was drift between sessions and was never a win."
+        },
+        "reason_correction_history": [
+          {
+            "date": "2026-11-05",
+            "reason": "RE-MEASURED 2026-11-05 at 05:52, with the WSL-aware contention detector and the per-repetition quiet gate that the husk_threads lever had been MISSING (it was the one lever with no quiet_check - the lever that produced the phantom was also the one with the least protection). Both arms measured alternately in one session on a card verified idle by process identity: DENY, -0.60% (paired, n=5/5, baseline drift -0.28%, baseline cv 0.25%, zero contention events, ssim guardrail baseline 0.9964 vs candidate 0.9951). The 11:11 figure was -0.89% at +1.96% drift; this one is -0.60% at -0.28% drift. Both are DENY, and the effect is indistinguishable from zero either way: the default thread count and -j 48 are the same thing on a 48-thread box, so the difference that IS visible between repetitions (-0.74%, +0.09%, +0.13%, +0.19%, +4.0% across the five pairs) is the renderer's own run-to-run noise, not the thread count. The +12.34% this verdict reported was drift between sessions and was never a win.",
+            "superseded_because": "RE-MEASURED 2026-11-05 at 05:52, with the WSL-aware contention detector and the per-repetition quiet gate that the husk_threads lever had been MISSING (it was the one lever with no quiet_check - the lever that produced the phantom was also the one with the least protection). Both arms measured alternately in one session on a card verified idle by process identity: DENY, -0.60% (paired, n=5/5, baseline drift -0.28%, baseline cv 0.25%, zero contention events, ssim guardrail baseline 0.9964 vs candidate 0.9951). The 11:11 figure was -0.89% at +1.96% drift; this one is -0.60% at -0.28% drift. Both are DENY, and the effect is indistinguishable from zero either way: the default thread count and -j 48 are the same thing on a 48-thread box. The per-pair differences in SECONDS were -0.74, +0.09, +0.13, +0.08, +1.73 (mean +0.258 s, i.e. -0.60%): four pairs inside 0.2 s of zero and one outlier, which is the renderer's own run-to-run noise, not the thread count. The +12.34% this verdict reported was drift between sessions and was never a win."
+          },
+          {
+            "date": "2026-11-05",
+            "reason": "RE-MEASURED 2026-11-05 at 05:52, with the WSL-aware contention detector and the per-repetition quiet gate that the husk_threads lever had been MISSING (it was the one lever with no quiet_check - the lever that produced the phantom was also the one with the least protection). Both arms measured alternately in one session on a card verified idle by process identity: DENY, -0.60% (paired, n=5/5, baseline drift -0.28%, baseline cv 0.25%, zero contention events, ssim guardrail baseline 0.9964 vs candidate 0.9951). The 11:11 figure was -0.89% at +1.96% drift; this one is -0.60% at -0.28% drift. Both are DENY, and the effect is indistinguishable from zero either way: the default thread count and -j 48 are the same thing on a 48-thread box. The per-pair differences in SECONDS were -0.74, +0.09, +0.13, +0.08, +1.73 (mean +0.258 s, i.e. -0.60%): four pairs inside 0.2 s of zero and one outlier, which is the renderer's own run-to-run noise, not the thread count. The +12.34% this verdict reported was drift between sessions and was never a win.",
+            "superseded_because": "RE-MEASURED 2026-11-05 at 05:52, with the WSL-aware contention detector and the per-repetition quiet gate that the husk_threads lever had been MISSING (it was the one lever with no quiet_check - the lever that produced the phantom was also the one with the least protection). Both arms measured alternately in one session on a card verified idle by process identity: DENY, -0.60% (paired, n=5/5, baseline drift -0.28%, baseline cv 0.25%, zero contention events, ssim guardrail baseline 0.9964 vs candidate 0.9951). The 11:11 figure was -0.89% at +1.96% drift; this one is -0.60% at -0.28% drift. Both are DENY, and the effect is indistinguishable from zero either way: the default thread count and -j 48 are the same thing on a 48-thread box. The per-pair differences in SECONDS were -0.74, +0.09, +0.13, +0.08, +1.73 (mean +0.258 s, i.e. -0.60%): THREE pairs inside 0.2 s of zero and TWO outliers, which is the renderer's own run-to-run noise, not the thread count. (Corrected 2026-11-05: the earlier text said 'four pairs inside 0.2 s of zero and one outlier'. The count was wrong - of the five differences -0.74, +0.09, +0.13, +0.08, +1.73, three fall inside 0.2 s of zero (+0.09, +0.13, +0.08) and two fall outside (-0.74, +1.73). The measured figures are unchanged; only the miscount is corrected, and the earlier wording stays readable in the correction chain.) The +12.34% this verdict reported was drift between sessions and was never a win."
+          }
+        ]
+      }
+    }
+  ],
+  "recorded_utc": "2026-11-04T00:29:45Z"
+}

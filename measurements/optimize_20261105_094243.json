@@ -1,0 +1,65 @@
+{
+  "request": "compute",
+  "objective": "gemm",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "621.14",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "power_ceiling": {
+      "n_baseline": 5.0,
+      "n_candidate": 5.0,
+      "baseline_mean": 156.09447504743596,
+      "candidate_mean": 172.5934879644504,
+      "effect": 0.10569889108503358,
+      "min_effect": 0.02,
+      "paired": 1.0,
+      "p_value": 4.407710245119514e-06,
+      "baseline_series": [
+        159.49991891696584,
+        157.23929909500427,
+        155.30418974098356,
+        153.27240125694402,
+        155.15656622728207
+      ],
+      "candidate_series": [
+        175.6482426481217,
+        173.87495807375075,
+        171.15436696137104,
+        171.88972178378071,
+        170.40015035522765
+      ],
+      "paired_diffs": [
+        16.14832373115587,
+        16.635658978746477,
+        15.85017722038748,
+        18.617320526836693,
+        15.243584127945581
+      ],
+      "control_spread": 0.027016200805528297,
+      "baseline_w": 450.0,
+      "candidate_w": 600.0,
+      "power_prior_w": 450.0,
+      "power_prior_source": "read live, immediately before the change",
+      "power_restored": true,
+      "power_restore_note": "the power ceiling is back at 450 W (read back)",
+      "ok": true,
+      "why": "+10.57% improvement, p=4.408e-06, n=5/5 \u2014 clears both significance and effect size",
+      "drift": -0.02723106518909817,
+      "contention_events": 0,
+      "applied": false,
+      "restore_error": "",
+      "notes": []
+    }
+  },
+  "recorded_utc": "2026-11-05T14:42:43Z"
+}

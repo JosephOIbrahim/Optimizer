@@ -1,0 +1,37 @@
+{
+  "request": "render",
+  "objective": "karma-xpu",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "617.42",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "aov_variant": {
+      "n_baseline": 5.0,
+      "n_candidate": 5.0,
+      "baseline_mean": 48.432,
+      "candidate_mean": 48.022,
+      "effect": 0.00846547737033374,
+      "min_effect": 0.05,
+      "variant": "no_crypto",
+      "ok": false,
+      "why": "effect +0.85% is below the 5.0% threshold this objective requires",
+      "p_value": null,
+      "drift": 0.015916230366492104
+    }
+  },
+  "recorded_utc": "2026-11-04T21:07:26Z",
+  "superseded": {
+    "date": "2026-11-05",
+    "reason": "SUPERSEDED 2026-11-05. This measurement was taken while a WSL benchmark held the card - the per-repetition contention check did not exist yet, so the competitor was invisible to it - and the drift gate recorded +1.59% and did not catch it. Re-measured on 2026-11-04 at 22:19 with both arms alternately in one session on a card verified idle by process identity: DENY +0.77% (paired, n=5/5, baseline drift +0.31%, zero contention events) in optimize_20261104_221922.json. The conclusion is unchanged - dropping the cryptomatte AOV alone is worth nothing on this workload - but it now rests on a clean series. This record is the earlier, contended one and is kept in the chain for the record. Superseded, not deleted - the numbers are real measurements of a real machine and stay readable."
+  }
+}

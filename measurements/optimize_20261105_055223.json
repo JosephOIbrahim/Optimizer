@@ -1,0 +1,33 @@
+{
+  "request": "render",
+  "objective": "karma-xpu",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "621.14",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "husk_threads": {
+      "n_baseline": 5.0,
+      "n_candidate": 5.0,
+      "baseline_mean": 43.218,
+      "candidate_mean": 43.476,
+      "effect": -0.005969734832708491,
+      "min_effect": 0.05,
+      "ok": false,
+      "why": "effect -0.60% is below the 5.0% threshold this objective requires",
+      "p_value": null,
+      "drift": -0.0027784209307709527,
+      "contention_events": 0
+    }
+  },
+  "recorded_utc": "2026-11-05T10:52:23Z"
+}

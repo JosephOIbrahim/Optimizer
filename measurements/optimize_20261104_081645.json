@@ -1,0 +1,28 @@
+{
+  "request": "shot",
+  "objective": "karma-xpu-shot",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "617.42",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "frames_per_process": {
+      "ok": false,
+      "why": "effect +48.25% clears the threshold but n<5 per side (baseline n=3, candidate n=3) \u2014 MEASURED requires enough samples to test",
+      "effect": 0.4825172227427213,
+      "p_value": null,
+      "setup_tax_s": 39.44999999999999,
+      "applied": false
+    }
+  },
+  "recorded_utc": "2026-11-04T13:16:45Z"
+}

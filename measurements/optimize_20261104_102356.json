@@ -1,0 +1,39 @@
+{
+  "request": "compute",
+  "objective": "gemm",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "617.42",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "power_ceiling": {
+      "n_baseline": 5.0,
+      "n_candidate": 5.0,
+      "baseline_mean": 144.2077394444522,
+      "candidate_mean": 156.47144342317998,
+      "effect": 0.08504192650112016,
+      "min_effect": 0.02,
+      "paired": 1.0,
+      "p_value": 2.4886102789611897e-07,
+      "baseline_w": 450.0,
+      "candidate_w": 600.0,
+      "ok": true,
+      "why": "+8.50% improvement, p=2.489e-07, n=5/5 \u2014 clears both significance and effect size",
+      "drift": -0.006934889236006021
+    }
+  },
+  "recorded_utc": "2026-11-04T15:23:56Z",
+  "superseded": {
+    "date": "2026-11-05",
+    "reason": "SUPERSEDED 2026-11-05. Same lever, re-measured under the current code: optimize_20261105_094243.json, ADMIT +10.57%, p=4.408e-06, n=5/5, paired, drift -2.72%, control spread 2.70%, zero contention events, with the raw series in the file. This record predates three fixes that change what the measurement can see: the drift gate now also refuses when the control moved in the MIDDLE of a run (a busy window that leaves the first and last values equal), the ssim guardrail no longer scores the reference frame against itself, and the power ceiling restore is checked and read back. It also predates the fix that made this lever measure what it claims: the arms now let the card settle at the new ceiling, because the first GEMM after the ceiling was raised read 157.8 TFLOPS where the card settled at 177.5 - an 11% deficit with nothing to do with the lever. The win is real and slightly larger than this record claimed. Superseded, not deleted: the numbers are real measurements and stay readable."
+  }
+}

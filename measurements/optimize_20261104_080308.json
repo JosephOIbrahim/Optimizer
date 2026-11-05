@@ -1,0 +1,40 @@
+{
+  "request": "compute",
+  "objective": "gemm",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "617.42",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "power_ceiling": {
+      "ok": true,
+      "why": "+9.75% improvement, p=9.76e-09, n=5/5 \u2014 clears both significance and effect size",
+      "effect": 0.09752843025928304,
+      "baseline_w": 450.0,
+      "candidate_w": 600.0,
+      "baseline_mean": 159.77887961059287,
+      "candidate_mean": 175.36186292760095,
+      "p_value": 9.760335206721038e-09,
+      "applied": false,
+      "restored": true
+    }
+  },
+  "recorded_utc": "2026-11-04T13:03:08Z",
+  "superseded": {
+    "date": "2026-11-05",
+    "reason": "SUPERSEDED 2026-11-05. Same lever, same day, measured properly: the control drifted -33.8% across the five repetitions (152.6, 152.0, 152.3, 126.1, 101.0 TFLOPS), so the baseline mean of 136.81 TFLOPS is a starved control and the p-value is an artifact of that starvation rather than an effect of the power change. This record has no drift field and no paired field, so nothing in it could have detected that. The same lever re-measured with the drift gate and the paired test is optimize_20261104_102356.json: ADMIT +8.50%, p=2.489e-07, drift -0.69%, paired, n=5/5. Superseded, not deleted: the numbers are real measurements and stay readable.",
+    "reason_corrected": {
+      "date": "2026-11-05",
+      "reason": "CORRECTION 2026-11-05 to the reason above. That reason was wrong on the facts, and the correction matters because the wrong facts are the ones a reader would rely on. It attributes THIS record a control that drifted -33.8% across five repetitions (152.6, 152.0, 152.3, 126.1, 101.0 TFLOPS) and a baseline mean of 136.81 TFLOPS. Those are the numbers of a DIFFERENT record - optimize_20261104_082320.json, whose baseline_mean is 136.81 and whose starved control is the harness's own documented counter-example (see harness/levers.py, the gate). This record's own baseline_mean is 159.78 TFLOPS and its candidate_mean is 175.36, and it has no drift field and no paired field, so it cannot show the starvation it was credited with. Its actual defect is the one the corrected reason names below, and it is the same defect as its sibling 082320: measured with no drift check and no paired arms, so nothing in it could detect that the control moved. Corrected reason: this record was measured by the pre-paired method - no drift field, no paired field - so nothing in it could detect that the control moved between the two arms, which is the same defect as its sibling optimize_20261104_082320.json. The same lever re-measured with the drift gate and the paired test is optimize_20261104_102356.json: ADMIT +8.50%, p=2.489e-07, drift -0.69%, paired, n=5/5. The effect is real and the lever is real; this record simply cannot show that its control held still, so it cannot stand as the current evidence. Superseded, not deleted: the numbers are real measurements and stay readable."
+    }
+  }
+}

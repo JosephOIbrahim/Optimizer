@@ -1,0 +1,36 @@
+{
+  "request": "render",
+  "objective": "karma-xpu",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "621.14",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "aov_variant": {
+      "n_baseline": 5.0,
+      "n_candidate": 5.0,
+      "baseline_mean": 48.382,
+      "candidate_mean": 43.646,
+      "effect": 0.09788764416518535,
+      "min_effect": 0.05,
+      "paired": 1.0,
+      "p_value": 3.723278220391091e-05,
+      "guardrail_ssim": -0.0012230741917792702,
+      "variant": "beauty_only",
+      "ok": true,
+      "why": "+9.79% improvement, p=3.723e-05, n=5/5 \u2014 clears both significance and effect size",
+      "drift": -0.01817068191098423,
+      "contention_events": 0
+    }
+  },
+  "recorded_utc": "2026-11-05T04:19:46Z"
+}

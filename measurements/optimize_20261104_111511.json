@@ -1,0 +1,36 @@
+{
+  "request": "render",
+  "objective": "karma-xpu",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "617.42",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "husk_threads": {
+      "n_baseline": 5.0,
+      "n_candidate": 5.0,
+      "baseline_mean": 48.658,
+      "candidate_mean": 49.089999999999996,
+      "effect": -0.008878293394714026,
+      "min_effect": 0.05,
+      "ok": false,
+      "why": "effect -0.89% is below the 5.0% threshold this objective requires",
+      "p_value": null,
+      "drift": 0.019620121060321388
+    }
+  },
+  "recorded_utc": "2026-11-04T16:15:11Z",
+  "superseded": {
+    "date": "2026-11-05",
+    "reason": "SUPERSEDED 2026-11-05. This measurement was taken while a WSL benchmark held the card - the per-repetition contention check and the per-repetition quiet gate that the husk_threads lever had been MISSING did not exist yet, so the competitor was invisible to it - and the drift gate recorded +1.96% and did not catch it. Re-measured on 2026-11-05 at 05:52 with both arms alternately in one session on a card verified idle by process identity: DENY -0.60% (paired, n=5/5, baseline drift -0.28%, zero contention events) in optimize_20261105_055223.json. Both runs are DENY and the effect is indistinguishable from zero either way, because the default thread count and -j 48 are the same thing on a 48-thread box; the difference between them is the renderer's own run-to-run noise. This record is the earlier, contended one and is kept in the chain for the record. Superseded, not deleted - the numbers are real measurements of a real machine and stay readable."
+  }
+}

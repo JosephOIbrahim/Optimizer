@@ -1,0 +1,44 @@
+{
+  "objective": "render",
+  "harness": "husk_frame",
+  "label": "smoke_fullsettings",
+  "usd": "E:\\OptimizerV12\\scenes\\ovoid_hero_v002.usd",
+  "frame": 503,
+  "renderer": "BRAY_HdKarmaXPU",
+  "camera": "",
+  "pixel_samples": 128,
+  "res_scale": 100,
+  "render_s": [
+    51.87
+  ],
+  "process_s": [
+    53.5598583999672
+  ],
+  "settings": "/Render/OVOID_CPU_RENDER_V013",
+  "ssim": [],
+  "throttle": [
+    {
+      "wall_s": 53.57240580004873,
+      "source": "nvml",
+      "power_frac": 0.0,
+      "reliability_frac": 0.0,
+      "sync_boost_frac": 0.0,
+      "thermal_frac": 0.0,
+      "board_limit_frac": 0.0,
+      "avg_power_w": 105.73139129015647,
+      "sm_clock_mhz_after": 2895.0,
+      "power_limit_w": 450.0
+    }
+  ],
+  "images": [
+    "E:\\OptimizerV12\\measurements\\husk_frames\\20261103_183207_smoke_fullsettings_rep01.png"
+  ],
+  "summary": {
+    "n": 1.0,
+    "mean": 51.87,
+    "median": 51.87,
+    "min": 51.87,
+    "max": 51.87
+  },
+  "recorded_utc": "2026-11-03T23:35:01Z"
+}

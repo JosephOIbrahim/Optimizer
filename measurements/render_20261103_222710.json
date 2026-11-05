@@ -1,0 +1,113 @@
+{
+  "objective": "render",
+  "harness": "husk_frame",
+  "label": "aov_no_crypto",
+  "usd": "E:\\OptimizerV12\\scenes\\ovoid_hero_v002_nocrypto.usd",
+  "frame": 503,
+  "renderer": "BRAY_HdKarmaXPU",
+  "camera": "",
+  "threads": 0,
+  "pixel_samples": 128,
+  "res_scale": 100,
+  "render_s": [
+    43.480000000000004,
+    42.86,
+    42.32,
+    42.7,
+    41.9
+  ],
+  "process_s": [
+    49.639442099956796,
+    49.04391200002283,
+    48.475078899995424,
+    48.88783710001735,
+    48.05084600002738
+  ],
+  "settings": "/Render/OVOID_CPU_RENDER_V013",
+  "ssim": [
+    1.0,
+    0.9954921527692623,
+    0.9955845200621397,
+    0.9958313277822844,
+    0.99564959130924
+  ],
+  "throttle": [
+    {
+      "wall_s": 49.65110870002536,
+      "source": "nvml",
+      "thermal_frac": 0.0,
+      "sync_boost_frac": 0.0,
+      "power_frac": 0.013368700143440321,
+      "board_limit_frac": 0.0,
+      "reliability_frac": 0.0,
+      "avg_power_w": 107.47949320207776,
+      "sm_clock_mhz_after": 2895.0,
+      "power_limit_w": 450.0
+    },
+    {
+      "wall_s": 49.05756240000483,
+      "source": "nvml",
+      "thermal_frac": 0.0,
+      "sync_boost_frac": 0.0,
+      "power_frac": 0.0,
+      "board_limit_frac": 0.0,
+      "reliability_frac": 0.0,
+      "avg_power_w": 109.34189832472133,
+      "sm_clock_mhz_after": 2895.0,
+      "power_limit_w": 450.0
+    },
+    {
+      "wall_s": 48.48785610002233,
+      "source": "nvml",
+      "thermal_frac": 0.0,
+      "sync_boost_frac": 0.0,
+      "power_frac": 0.0003056356207919281,
+      "board_limit_frac": 0.0,
+      "reliability_frac": 0.0,
+      "avg_power_w": 111.07397672708238,
+      "sm_clock_mhz_after": 2895.0,
+      "power_limit_w": 450.0
+    },
+    {
+      "wall_s": 48.90366680000443,
+      "source": "nvml",
+      "thermal_frac": 0.0,
+      "sync_boost_frac": 0.0,
+      "power_frac": 0.0,
+      "board_limit_frac": 0.0,
+      "reliability_frac": 0.0,
+      "avg_power_w": 109.33104509045764,
+      "sm_clock_mhz_after": 2895.0,
+      "power_limit_w": 450.0
+    },
+    {
+      "wall_s": 48.06413410004461,
+      "source": "nvml",
+      "thermal_frac": 0.0,
+      "sync_boost_frac": 0.0,
+      "power_frac": 0.0,
+      "board_limit_frac": 0.0,
+      "reliability_frac": 0.0,
+      "avg_power_w": 110.3837424587053,
+      "sm_clock_mhz_after": 2895.0,
+      "power_limit_w": 450.0
+    }
+  ],
+  "images": [
+    "E:\\OptimizerV12\\measurements\\husk_frames\\20261103_222116_aov_no_crypto_rep01.png",
+    "E:\\OptimizerV12\\measurements\\husk_frames\\20261103_222116_aov_no_crypto_rep02.png",
+    "E:\\OptimizerV12\\measurements\\husk_frames\\20261103_222116_aov_no_crypto_rep03.png",
+    "E:\\OptimizerV12\\measurements\\husk_frames\\20261103_222116_aov_no_crypto_rep04.png",
+    "E:\\OptimizerV12\\measurements\\husk_frames\\20261103_222116_aov_no_crypto_rep05.png"
+  ],
+  "summary": {
+    "n": 5.0,
+    "mean": 42.652,
+    "median": 42.7,
+    "min": 41.9,
+    "max": 43.480000000000004,
+    "stdev": 0.593059862071277,
+    "cv": 0.013904620230499789
+  },
+  "recorded_utc": "2026-11-04T03:27:10Z"
+}

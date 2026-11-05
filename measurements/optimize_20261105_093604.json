@@ -1,0 +1,59 @@
+{
+  "request": "compute",
+  "objective": "gemm",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "621.14",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "power_ceiling": {
+      "drift": 0.0034316256125192872,
+      "control_spread": 0.05949287679291336,
+      "effect": 0.0,
+      "baseline_series": [
+        145.76335278421,
+        150.63660283928058,
+        151.523644440897,
+        159.59840769250093,
+        146.263558038991
+      ],
+      "candidate_series": [
+        150.21485179641397,
+        167.93708357336848,
+        160.92811502860872,
+        173.93147216987452,
+        147.9973296296953
+      ],
+      "paired_diffs": [
+        4.4514990122039535,
+        17.3004807340879,
+        9.404470587711728,
+        14.333064477373597,
+        1.7337715907042934
+      ],
+      "baseline_w": 450.0,
+      "candidate_w": 600.0,
+      "power_prior_w": 450.0,
+      "power_prior_source": "read live, immediately before the change",
+      "power_restored": true,
+      "power_restore_note": "the power ceiling is back at 450 W (read back)",
+      "ok": false,
+      "why": "the BASELINE moved 5.9% away from its own middle at some point in the run (limit 5%), so the machine's state changed for part of the measurement and the comparison does not describe one machine. The end-to-end drift reads +0.3% because the change was in the MIDDLE of the run, not at its ends. Something else was using the GPU for part of the campaign \u2014 close it and run this again.",
+      "p_value": null,
+      "contention_events": 0,
+      "applied": false,
+      "restore_error": "",
+      "notes": []
+    }
+  },
+  "recorded_utc": "2026-11-05T14:36:04Z"
+}

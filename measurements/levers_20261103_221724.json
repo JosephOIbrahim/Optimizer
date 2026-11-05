@@ -1,0 +1,38 @@
+{
+  "objective": "render",
+  "baseline": "E:\\OptimizerV12\\measurements\\render_20261103_193741.json",
+  "baseline_mean_s": 48.06,
+  "results": [
+    {
+      "lever": "usd_variants",
+      "variant": "E:\\OptimizerV12\\scenes\\ovoid_hero_v002_beauty.usd",
+      "label": "aov_beauty_only",
+      "verdict": "RETRACTED \u2014 was: ADMIT  (+16.91%)  +16.91% improvement, p=2.183e-10, n=5/5 \u2014 clears both significance and effect size",
+      "mean_s": 39.934000000000005,
+      "file": "E:\\OptimizerV12\\measurements\\render_20261103_221724.json",
+      "v12_key": null,
+      "retracted": {
+        "date": "2026-11-04",
+        "reason": "RETRACTED 2026-11-04. Gated against a baseline measured 2h40m earlier (2026-11-03T19:37 local), under a different set of resident processes and a different machine state. The comparison described two different machine states rather than two configurations, so the effect it reports is not the effect of the AOV change. No statistical gate could have caught it: Welch's t-test on two independent series attributes the drift to the candidate, which is what 'independent' means. Re-measured 2026-11-04 with both arms alternately in one session (harness/levers.py, aov_variant lever, same beauty_only variant): +9.19% (p=8.6e-05). The lever is a real win, but it is a third smaller than this pairing reported.",
+        "original_verdict": "ADMIT  (+16.91%)  +16.91% improvement, p=2.183e-10, n=5/5 \u2014 clears both significance and effect size",
+        "original_mean_s": 39.934000000000005,
+        "replacement_measurement": "E:\\OptimizerV12\\measurements\\optimize_20261104_231946.json",
+        "replacement_verdict": "ADMIT (+9.79%), paired, n=5/5, p=3.723e-05, baseline drift -1.82%, zero contention events - the beauty_only AOV reduction IS a real win on this workload",
+        "replacement_history": [
+          {
+            "date": "2026-11-04",
+            "measurement": "E:\\OptimizerV12\\measurements\\optimize_20261104_103605.json",
+            "verdict": "ADMIT (+9.19%), paired, n=5, baseline drift +1.45%, same beauty_only variant",
+            "superseded_because": "RE-MEASURED 2026-11-04 at 23:19, now that the contention detector can see WSL. The 10:36 figure (+9.19%, p=8.6e-05, drift +1.45%) was taken before the per-rep contention check existed, so a WSL benchmark holding the card at 98% and 288 W was invisible to it - and the drift gate, which only sees the control, had not yet caught it. Re-measured with both arms alternately in one session on a card verified idle by process identity (the WSL competitor was waited out and named): ADMIT, +9.79% (paired, n=5/5, p=3.723e-05, baseline drift -1.82%, cv 0.84% baseline / 1.13% candidate, zero contention events, ssim guardrail baseline 0.9962 vs candidate 0.9950). The win is CONFIRMED and slightly larger than the 10:36 figure: the two independent paired runs (+9.19% and +9.79%) agree within 0.6 points, so the effect is +9.5% +/- 0.3. The lever is real - a third smaller than the +16.91% this pairing originally reported - and the two AOV reductions remain NOT interchangeable: beauty_only removes every extra pass and pays, while no_crypto alone is worth nothing (+0.77%, DENY)."
+          }
+        ],
+        "replacement_updated": "2026-11-05",
+        "reason_corrected": {
+          "date": "2026-11-05",
+          "reason": "RE-MEASURED 2026-11-04 at 23:19, now that the contention detector can see WSL. The 10:36 figure (+9.19%, p=8.6e-05, drift +1.45%) was taken before the per-rep contention check existed, so a WSL benchmark holding the card at 98% and 288 W was invisible to it - and the drift gate, which only sees the control, had not yet caught it. Re-measured with both arms alternately in one session on a card verified idle by process identity (the WSL competitor was waited out and named): ADMIT, +9.79% (paired, n=5/5, p=3.723e-05, baseline drift -1.82%, cv 0.84% baseline / 1.13% candidate, zero contention events, ssim guardrail baseline 0.9962 vs candidate 0.9950). The win is CONFIRMED and slightly larger than the 10:36 figure: the two independent paired runs (+9.19% and +9.79%) agree within 0.6 points, so the effect is +9.5% +/- 0.3. The lever is real - a third smaller than the +16.91% this pairing originally reported - and the two AOV reductions remain NOT interchangeable: beauty_only removes every extra pass and pays, while no_crypto alone is worth nothing (+0.77%, DENY)."
+        }
+      }
+    }
+  ],
+  "recorded_utc": "2026-11-04T03:17:24Z"
+}

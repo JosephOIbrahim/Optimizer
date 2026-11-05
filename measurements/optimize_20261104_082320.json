@@ -1,0 +1,42 @@
+{
+  "request": "compute",
+  "objective": "gemm",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "617.42",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "power_ceiling": {
+      "ok": true,
+      "why": "RETRACTED \u2014 was: +12.99% improvement, p=0.0146, n=5/5 \u2014 clears both significance and effect size",
+      "effect": 0.12994932240544288,
+      "baseline_w": 450.0,
+      "candidate_w": 600.0,
+      "baseline_mean": 136.80920268885677,
+      "candidate_mean": 154.5874658771026,
+      "p_value": 0.014598891648630596,
+      "applied": false,
+      "restored": true,
+      "retracted": {
+        "date": "2026-11-05",
+        "reason": "RETRACTED 2026-11-05. This ADMIT was not a comparison of anything: the control drifted -33.8% across the five repetitions (152.6, 152.0, 152.3, 126.1, 101.0 TFLOPS), so the baseline mean of 136.81 TFLOPS is a starved control, not a measurement of the machine at rest. Welch's t-test on two independent series attributes that drift to the candidate, which is exactly what 'independent' means, so no statistical gate could have caught it: the p-value of 0.0146 is an artifact of the starved control, not an effect of the power change. This run is the harness's OWN documented counter-example - harness/levers.py names it as 'a significant win bought with a starved control'. The honest figure for the same lever, measured on a stable control with both arms alternately in one session, is the paired re-measurement in optimize_20261104_102356.json.",
+        "original_verdict": "+12.99% improvement, p=0.0146, n=5/5 \u2014 clears both significance and effect size",
+        "original_ok": true,
+        "original_baseline_mean": 154.5874658771026,
+        "original_candidate_mean": 154.5874658771026,
+        "replacement_measurement": "E:\\OptimizerV12\\measurements\\optimize_20261104_102356.json",
+        "replacement_verdict": "ADMIT (+8.50%), p=2.489e-07, n=5/5, paired, baseline drift -0.69% - the power ceiling IS a real win on the compute path, and the honest figure is smaller than the +12.99% this starved control produced"
+      }
+    }
+  },
+  "recorded_utc": "2026-11-04T13:23:20Z"
+}

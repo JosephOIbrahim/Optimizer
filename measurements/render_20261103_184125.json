@@ -1,0 +1,116 @@
+{
+  "objective": "render",
+  "harness": "husk_frame",
+  "label": "baseline",
+  "usd": "E:\\OptimizerV12\\scenes\\ovoid_hero_v002.usd",
+  "frame": 503,
+  "renderer": "BRAY_HdKarmaXPU",
+  "camera": "",
+  "pixel_samples": 128,
+  "res_scale": 100,
+  "render_s": [
+    53.78,
+    53.45,
+    55.43,
+    55.12,
+    54.35
+  ],
+  "process_s": [
+    55.33065399999032,
+    55.01883600000292,
+    57.02159530000063,
+    57.00228670000797,
+    56.19109179999214
+  ],
+  "settings": "/Render/OVOID_CPU_RENDER_V013",
+  "ssim": [
+    1.0,
+    0.9952717447955349,
+    0.9953768936599605,
+    0.995185662792131,
+    0.9954543479394063
+  ],
+  "throttle": [
+    {
+      "wall_s": 55.34190599998692,
+      "source": "nvml",
+      "sync_boost_frac": 0.0,
+      "power_frac": 0.0,
+      "thermal_frac": 0.0,
+      "reliability_frac": 0.0,
+      "board_limit_frac": 0.0,
+      "avg_power_w": 104.51007957697314,
+      "sm_clock_mhz_after": 2895.0,
+      "power_limit_w": 450.0
+    },
+    {
+      "wall_s": 55.03058630001033,
+      "source": "nvml",
+      "sync_boost_frac": 0.0,
+      "power_frac": 0.0,
+      "thermal_frac": 0.0,
+      "reliability_frac": 0.0,
+      "board_limit_frac": 0.0,
+      "avg_power_w": 104.81282115649415,
+      "sm_clock_mhz_after": 2895.0,
+      "power_limit_w": 450.0
+    },
+    {
+      "wall_s": 57.033311500039424,
+      "source": "nvml",
+      "sync_boost_frac": 0.0,
+      "power_frac": 0.0,
+      "thermal_frac": 0.0,
+      "reliability_frac": 0.0,
+      "board_limit_frac": 0.0,
+      "avg_power_w": 104.50127904629701,
+      "sm_clock_mhz_after": 2895.0,
+      "power_limit_w": 450.0
+    },
+    {
+      "wall_s": 57.013410199957434,
+      "source": "nvml",
+      "sync_boost_frac": 0.0,
+      "power_frac": 0.0,
+      "thermal_frac": 0.0,
+      "reliability_frac": 0.0,
+      "board_limit_frac": 0.0,
+      "avg_power_w": 103.14006791343259,
+      "sm_clock_mhz_after": 2895.0,
+      "power_limit_w": 450.0
+    },
+    {
+      "wall_s": 56.202822599967476,
+      "source": "nvml",
+      "sync_boost_frac": 0.0,
+      "power_frac": 0.0,
+      "thermal_frac": 0.0,
+      "reliability_frac": 0.0,
+      "board_limit_frac": 0.0,
+      "avg_power_w": 103.81421661913785,
+      "sm_clock_mhz_after": 2895.0,
+      "power_limit_w": 450.0
+    }
+  ],
+  "images": [
+    "E:\\OptimizerV12\\measurements\\husk_frames\\20261103_183548_baseline_rep01.png",
+    "E:\\OptimizerV12\\measurements\\husk_frames\\20261103_183548_baseline_rep02.png",
+    "E:\\OptimizerV12\\measurements\\husk_frames\\20261103_183548_baseline_rep03.png",
+    "E:\\OptimizerV12\\measurements\\husk_frames\\20261103_183548_baseline_rep04.png",
+    "E:\\OptimizerV12\\measurements\\husk_frames\\20261103_183548_baseline_rep05.png"
+  ],
+  "summary": {
+    "n": 5.0,
+    "mean": 54.426,
+    "median": 54.35,
+    "min": 53.45,
+    "max": 55.43,
+    "stdev": 0.8463628063661571,
+    "cv": 0.015550707499470053
+  },
+  "recorded_utc": "2026-11-03T23:41:25Z",
+  "superseded": {
+    "date": "2026-11-04",
+    "reason": "SUPERSEDED 2026-11-04. This is the baseline the husk_j48 verdict (levers_20261103_192945.json) was gated against, and the pairing was invalid: the candidate was measured 48 minutes later under a different set of resident processes, so the difference described two different machine states rather than two configurations. The verdict built on it was retracted. Re-measured 2026-11-04 with both arms alternately in one session, the same lever is DENY -0.89%. Superseded, not deleted - the numbers are real measurements of a real machine and stay readable."
+  }
+}

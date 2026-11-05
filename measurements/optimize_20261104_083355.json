@@ -1,0 +1,32 @@
+{
+  "request": "shot",
+  "objective": "karma-xpu-shot",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "617.42",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "frames_per_process": {
+      "ok": true,
+      "why": "+47.23% improvement, p=0.0005682, n=3/3 \u2014 clears both significance and effect size",
+      "effect": 0.4723488734647642,
+      "p_value": 0.000568194309910286,
+      "setup_tax_s": 37.42,
+      "applied": false
+    }
+  },
+  "recorded_utc": "2026-11-04T13:33:55Z",
+  "superseded": {
+    "date": "2026-11-05",
+    "reason": "SUPERSEDED 2026-11-05. Same lever, re-measured under the current code on a card verified idle by process identity: optimize_20261105_065602.json, ADMIT +46.95%, p=2.398e-06, drift +2.12%, paired, n=3/3, zero contention events, with the raw series in the file. This record was measured before the warm-up repetition existed, so its first repetition paid the cold-cache cost inside the measured series and it carries no drift field to show it; it also has no paired field. The effect reproduces (+47.23% here, +46.95% there) - it is a real win - but this record cannot show that it was measured on a steady machine, so it cannot stand as the current evidence. Superseded, not deleted: the numbers are real measurements and stay readable."
+  }
+}

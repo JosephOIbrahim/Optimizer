@@ -1,0 +1,36 @@
+{
+  "request": "render",
+  "objective": "karma-xpu",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "617.42",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "aov_variant": {
+      "ok": true,
+      "why": "RETRACTED \u2014 was: +7.49% improvement, p=1.782e-05, n=5/5 \u2014 clears both significance and effect size",
+      "effect": 0.07486850756081523,
+      "p_value": 1.781783597865072e-05,
+      "variant": "beauty_only",
+      "applied": false,
+      "retracted": {
+        "date": "2026-11-05",
+        "reason": "RETRACTED 2026-11-05. An ORPHAN: this ADMIT sat in the store as a live verdict, outside the beauty_only retraction chain (103605 -> 231946) that already carries the other measurements of this lever, so no reader following that chain would ever arrive here and find it marked. It also cannot be checked: the record carries no drift field and no paired-arm marker, so the stability of the control across the run cannot be verified from the record itself, and a p-value computed on two independent series cannot distinguish drift from effect - the failure this repo's own harness documentation names. The lever is real; this figure is not the one to quote. The authoritative measurement of the same lever and the same variant, with both arms alternately in one session on a card verified idle by process identity, is optimize_20261104_231946.json.",
+        "original_verdict": "+7.49% improvement, p=1.782e-05, n=5/5 \u2014 clears both significance and effect size",
+        "replacement_measurement": "E:\\OptimizerV12\\measurements\\optimize_20261104_231946.json",
+        "replacement_verdict": "ADMIT (+9.79%), p=3.723e-05, n=5/5, paired, baseline drift -1.82%, zero contention events - the beauty_only AOV reduction IS a real win on this workload",
+        "original_ok": true
+      }
+    }
+  },
+  "recorded_utc": "2026-11-04T13:45:01Z"
+}

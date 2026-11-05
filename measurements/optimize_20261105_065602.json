@@ -1,0 +1,60 @@
+{
+  "request": "shot",
+  "objective": "karma-xpu-shot",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "621.14",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "frames_per_process": {
+      "n_baseline": 3.0,
+      "n_candidate": 3.0,
+      "baseline_mean": 176.23149886661363,
+      "candidate_mean": 93.48683769997054,
+      "effect": 0.46952254108257346,
+      "min_effect": 0.05,
+      "paired": 1.0,
+      "p_value": 2.3977155276799778e-06,
+      "guardrail_ssim": -0.0014486392723419988,
+      "baseline_series": [
+        174.32168569997884,
+        176.35149499995168,
+        178.0213158999104
+      ],
+      "candidate_series": [
+        91.66172089998145,
+        93.2593316999264,
+        95.53946050000377
+      ],
+      "paired_diffs": [
+        -82.6599647999974,
+        -83.09216330002528,
+        -82.48185539990664
+      ],
+      "guardrail_ssim_baseline": [
+        1.0,
+        0.9949286020842851,
+        0.9941147960828636
+      ],
+      "guardrail_ssim_candidate": [
+        0.9942542770637389,
+        0.9950974701543684,
+        0.9953616052957222
+      ],
+      "ok": true,
+      "why": "+46.95% improvement, p=2.398e-06, n=3/3 \u2014 clears both significance and effect size",
+      "drift": 0.021223006105499192,
+      "contention_events": 0
+    }
+  },
+  "recorded_utc": "2026-11-05T11:56:02Z"
+}

@@ -1,0 +1,28 @@
+{
+  "request": "shot",
+  "objective": "karma-xpu-shot",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "621.14",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "frames_per_process": {
+      "drift": -0.0533623092444789,
+      "effect": 0.0,
+      "ok": false,
+      "why": "the BASELINE moved -5.3% across the run (limit 5%), so the machine's state changed while we measured and the comparison does not describe one machine. Something else was using the GPU, or the machine was otherwise busy. Close it and run this again \u2014 this is the same failure that produced the +12% phantom on 2026-11-03.",
+      "p_value": null,
+      "contention_events": 0
+    }
+  },
+  "recorded_utc": "2026-11-05T11:23:26Z"
+}

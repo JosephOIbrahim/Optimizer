@@ -1,0 +1,40 @@
+{
+  "objective": "render",
+  "harness": "husk_frame",
+  "label": "smoke",
+  "usd": "E:\\OptimizerV12\\scenes\\ovoid_hero_v002.usd",
+  "frame": 503,
+  "renderer": "BRAY_HdKarmaXPU",
+  "camera": "/World/OVOID_CAMERAS/HERO_40MM_CANDIDATE",
+  "pixel_samples": 16,
+  "res_scale": 25,
+  "render_s": [
+    17.24625319999177
+  ],
+  "ssim": [],
+  "throttle": [
+    {
+      "wall_s": 17.258455299946945,
+      "source": "nvml",
+      "thermal_frac": 0.0,
+      "board_limit_frac": 0.0,
+      "reliability_frac": 0.0,
+      "sync_boost_frac": 0.0,
+      "power_frac": 0.0,
+      "avg_power_w": 58.35951030930887,
+      "sm_clock_mhz_after": 2895.0,
+      "power_limit_w": 450.0
+    }
+  ],
+  "images": [
+    "E:\\OptimizerV12\\measurements\\husk_frames\\20261103_182608_smoke_rep01.png"
+  ],
+  "summary": {
+    "n": 1.0,
+    "mean": 17.24625319999177,
+    "median": 17.24625319999177,
+    "min": 17.24625319999177,
+    "max": 17.24625319999177
+  },
+  "recorded_utc": "2026-11-03T23:27:46Z"
+}
