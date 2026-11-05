@@ -232,17 +232,29 @@ def result_block(r: levers.Result) -> Dict[str, Any]:
 
 
 def build_record(request: str, obj: Objective, spec: Dict[str, Any],
-                 results: List[Tuple[str, levers.Result]]) -> Dict[str, Any]:
+                 results: List[Tuple[str, levers.Result]],
+                 quiet_budget: Optional[common.QuietBudget] = None
+                 ) -> Dict[str, Any]:
     """The record of one optimize run.
 
     Kept separate from `main` so the shape of the record can be tested
     without running a lever, and so the record is built in exactly one place.
     """
-    return {
+    rec = {
         "request": request, "objective": obj.workload.name,
         "spec": spec,
         "results": {n: result_block(r) for n, r in results},
     }
+    if quiet_budget is not None:
+        # How long the campaign spent waiting for the card, and how much of
+        # the budget it had. A record that says nothing about the wait cannot
+        # be told apart from one taken on a busy machine.
+        rec["quiet_budget"] = {
+            "timeout_s": quiet_budget.timeout_s,
+            "waited_s": quiet_budget.waited_s,
+            "waits_that_gave_up": quiet_budget.exhausted,
+        }
+    return rec
 
 
 def main() -> int:
@@ -342,9 +354,11 @@ def main() -> int:
     for name, r in results:
         print(r.summary())
     rec = common.write_measurement("optimize", build_record(
-        args.request, obj, spec, results))
+        args.request, obj, spec, results, ctx.quiet_budget))
     print(f"\n  saved {rec}")
     print(closure_report(results, chosen))
+    if ctx.quiet_budget is not None and ctx.quiet_budget.waited_s > 0:
+        print(f"  quiet wait: {ctx.quiet_budget.describe()}")
     _commit_the_campaign(rec, results, chosen)
     return 0
 

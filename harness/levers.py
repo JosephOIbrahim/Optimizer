@@ -528,14 +528,37 @@ class Context:
     warmup: int = 1
     variant: str = "beauty_only"
     threads: int = 0
-    #: How long to wait for the GPU to go quiet before measuring. Long by
-    #: default: a contended measurement is worse than a late one, because the
-    #: drift gate refuses it and the operator has waited for nothing.
+    #: How long the CAMPAIGN may wait for the GPU to go quiet, in total. Long
+    #: by default: a contended measurement is worse than a late one, because
+    #: the drift gate refuses it and the operator has waited for nothing.
+    #:
+    #: This is a budget for the whole campaign, not a per-phase allowance.
+    #: It used to be handed to each waiting thing separately — once before the
+    #: lever and again before every repetition — so a contended machine
+    #: waited the timeout, then waited it again, then again per repetition.
+    #: Observed on this box: a campaign waited 900 s, announced it was
+    #: measuring anyway, then waited another 900 s before its first
+    #: repetition. Two full timeouts for a campaign that could not have
+    #: measured anything.
     quiet_timeout_s: float = 900.0
+    #: The campaign's quiet budget. Created once, when the campaign starts,
+    #: and shared by every wait inside it.
+    quiet_budget: Optional[common.QuietBudget] = None
     spec: Dict[str, Any] = field(default_factory=machine_spec)
     #: For the manual lever: the operator's change, applied and reverted by hand.
     #: The prompt names what they must be doing at each step.
     manual_prompt: str = ""
+
+    def budget(self) -> common.QuietBudget:
+        """The campaign's quiet budget, created on first use.
+
+        One budget, shared by the wait before the lever and the wait before
+        every repetition, so the campaign waits the timeout ONCE rather than
+        once per phase.
+        """
+        if self.quiet_budget is None:
+            self.quiet_budget = common.QuietBudget(self.quiet_timeout_s)
+        return self.quiet_budget
 
     @classmethod
     def from_args(cls, args) -> "Context":
@@ -633,7 +656,7 @@ def _progress(msg: str) -> None:
     print(msg)
 
 
-def _quiet_gate(timeout_s: float) -> "Callable[[], bool]":
+def _quiet_gate(budget: common.QuietBudget) -> "Callable[[], bool]":
     """A gate the paired engine calls before each repetition.
 
     Checking once, before the run, is not enough: a ten-minute measurement
@@ -660,10 +683,18 @@ def _quiet_gate(timeout_s: float) -> "Callable[[], bool]":
     The gate is a courtesy to the operator, not a veto. If the machine never
     settles, it says so and measures anyway — the drift gate remains the
     authority on whether the result is usable.
+
+    The gate draws on the CAMPAIGN's budget, not a fresh one. It used to be
+    handed the timeout again for every repetition, so a contended machine
+    waited the timeout before the lever and then the timeout again before
+    each repetition. Now the budget is spent once and shared: the gate can
+    only wait for what is LEFT of it.
     """
     def gate() -> bool:
-        common.wait_for_no_others(timeout_s=timeout_s, verbose=True)
-        return common.wait_for_quiet_gpu(timeout_s=timeout_s, verbose=True)
+        common.wait_for_no_others(timeout_s=budget.timeout_s, verbose=True,
+                                  budget=budget)
+        return common.wait_for_quiet_gpu(timeout_s=budget.timeout_s, verbose=True,
+                                         budget=budget)
     return gate
 
 
@@ -699,7 +730,7 @@ def lever_frames_per_process(ctx: Context, obj: Objective) -> Result:
                     lower_is_better=True, on_progress=_progress,
                     baseline_name="one frame per process",
                     candidate_name=f"{frames} frames per process")
-    p.quiet_check = _quiet_gate(ctx.quiet_timeout_s)
+    p.quiet_check = _quiet_gate(ctx.budget())
     res = p.run()
     notes = []
     tax = 0.0
@@ -785,7 +816,7 @@ def lever_aov_variant(ctx: Context, obj: Objective) -> Result:
                     reps=max(ctx.reps, obj.min_samples), warmup=max(ctx.warmup, 1),
                     lower_is_better=True, on_progress=_progress,
                     baseline_name="full AOV set", candidate_name=chosen)
-    p.quiet_check = _quiet_gate(ctx.quiet_timeout_s)
+    p.quiet_check = _quiet_gate(ctx.budget())
     res = p.run()
     r = _finish("aov_variant", res, obj, ssim_guardrail(res))
     r.detail["variant"] = chosen
@@ -869,7 +900,7 @@ def lever_power_ceiling(ctx: Context, obj: Objective) -> Result:
                         lower_is_better=False, on_progress=_progress,
                         baseline_name=f"at {cur:.0f} W",
                         candidate_name=f"at {hi:.0f} W")
-        p.quiet_check = _quiet_gate(ctx.quiet_timeout_s)
+        p.quiet_check = _quiet_gate(ctx.budget())
         res = p.run()
     finally:
         # The machine goes back to where it was, whatever happened — and the
@@ -925,7 +956,7 @@ def lever_husk_threads(ctx: Context, obj: Objective) -> Result:
     # measurement of thread count is exactly the measurement that drifts
     # when something else has the card, because a busy card makes every
     # thread look slow.
-    p.quiet_check = _quiet_gate(ctx.quiet_timeout_s)
+    p.quiet_check = _quiet_gate(ctx.budget())
     res = p.run()
     return _finish("husk_threads", res, obj, ssim_guardrail(res))
 
@@ -979,7 +1010,7 @@ def lever_manual(ctx: Context, obj: Objective) -> Result:
     # The operator is already here and already being asked to change the
     # machine between arms, but the card can still be busy with somebody
     # else's work. Same gate as every other lever.
-    p.quiet_check = _quiet_gate(ctx.quiet_timeout_s)
+    p.quiet_check = _quiet_gate(ctx.budget())
     res = p.run()
     r = _finish("manual", res, obj, ssim_guardrail(res))
     # The one lever that leaves the machine alone, ON PURPOSE: the harness
@@ -1076,6 +1107,15 @@ def run(name: str, ctx: Context, obj: Objective) -> Result:
     # operator has waited out the measurement wastes the whole campaign — and
     # the thing they are told to close is often one they did not know was
     # running.
-    common.wait_for_no_others(timeout_s=ctx.quiet_timeout_s)
-    common.wait_for_quiet_gpu(timeout_s=ctx.quiet_timeout_s)
+    #
+    # Both waits and every wait INSIDE the lever draw on ONE budget, created
+    # here. The timeout is the CAMPAIGN's, spent once — not a fresh allowance
+    # for the wait before the lever and another for the wait before each
+    # repetition. On a contended machine that used to mean two full timeouts
+    # before the first measurement, and more after.
+    budget = ctx.budget()
+    common.wait_for_no_others(timeout_s=ctx.quiet_timeout_s, verbose=True,
+                              budget=budget)
+    common.wait_for_quiet_gpu(timeout_s=ctx.quiet_timeout_s, verbose=True,
+                              budget=budget)
     return fn(ctx, obj)

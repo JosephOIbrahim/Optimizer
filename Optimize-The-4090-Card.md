@@ -39,7 +39,11 @@ render request without being asked. `--reps` is floored at the objective's own
 minimum — 5 per side for render and compute, 3 for shot — so raising it below
 that changes nothing; `--warmup` discards repetitions before measuring, and
 `--quiet-timeout` is how long the tool waits for the card to go idle before it
-starts. `--probe` reports what is binding and measures nothing. The default
+starts. That timeout is a budget for the **whole campaign**, not per phase:
+the wait before the lever and the wait before every repetition all draw on
+it, so a contended machine waits the timeout once rather than the timeout
+before the lever and again before each repetition. `--probe` reports what is
+binding and measures nothing. The default
 `--reps 3` stays odd on purpose: every lever already runs an odd count, so an
 even default would change only the shot path, and the residual it removes
 measures about 0.07% of the metric against a 5% threshold — too small to flip

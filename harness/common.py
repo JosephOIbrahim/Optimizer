@@ -175,13 +175,94 @@ def gpu_busy(util_limit_pct: float = DESKTOP_UTIL_CEILING_PCT, samples: int = 3,
     return busy_from_readings(util_vals, vram_used, vram_total, util_limit_pct)
 
 
+def _sampling_for(limit_s: float) -> Tuple[int, float]:
+    """How many samples to take, and how far apart, given a time limit.
+
+    The default is three samples a second apart, which costs about two
+    seconds — and that cost is paid BEFORE the deadline is even checked. So a
+    wait with a small budget could overrun it by more than the budget
+    itself.
+
+    With little time left, one sample and no gap is the honest choice: a
+    spread over three seconds is worth nothing if the wait is over in one.
+    """
+    if limit_s < 0.5:
+        return 1, 0.0
+    if limit_s < 3.0:
+        return 2, 0.2
+    return 3, 1.0
+
+
+class QuietBudget:
+    """One quiet-timeout budget for a WHOLE campaign.
+
+    The quiet timeout used to be a NUMBER handed to each thing that waits:
+    once before the lever, and again before every repetition. So a contended
+    machine waited the timeout, then waited it again, then waited it again
+    per repetition — two timeouts before a single measurement started, and
+    more after.
+
+    Now the timeout is a DEADLINE. Everything that waits takes what is left
+    of it, so a campaign waits at most the timeout in total — the same
+    budget spent once rather than re-granted per phase.
+
+    Observed on this box: a campaign on a card that somebody else was using
+    waited 900 s, announced it was measuring anyway, then waited another 900
+    s before its first repetition. Two full timeouts for one campaign that
+    could not have measured anything.
+    """
+
+    def __init__(self, timeout_s: float):
+        self.timeout_s = max(0.0, float(timeout_s))
+        self._start = time.perf_counter()
+        self._deadline = self._start + self.timeout_s
+        #: How long this campaign has spent waiting, for the record.
+        self.waited_s = 0.0
+        #: How many times something gave up waiting and carried on.
+        self.exhausted = 0
+
+    @property
+    def remaining(self) -> float:
+        """Seconds left in the budget. Never negative."""
+        return max(0.0, self._deadline - time.perf_counter())
+
+    @property
+    def expired(self) -> bool:
+        return self.remaining <= 0.0
+
+    def spend(self, seconds: float) -> None:
+        """Record time spent waiting, so the record can say how long."""
+        self.waited_s += max(0.0, seconds)
+
+    def note_exhausted(self) -> None:
+        self.exhausted += 1
+
+    def describe(self) -> str:
+        if self.timeout_s <= 0:
+            return "no quiet wait was requested"
+        return (f"waited {self.waited_s:.0f}s of a {self.timeout_s:.0f}s quiet "
+                f"budget ({self.exhausted} wait(s) gave up)")
+
+
+def _budget_timeout(timeout_s: float, budget: Optional["QuietBudget"]) -> float:
+    """How long this wait may take: its own limit, or what is left of the
+    campaign's budget, whichever is smaller."""
+    if budget is None:
+        return max(0.0, timeout_s)
+    return max(0.0, min(timeout_s, budget.remaining))
+
+
 def wait_for_quiet_gpu(timeout_s: float = 300.0,
                        util_limit_pct: float = DESKTOP_UTIL_CEILING_PCT,
-                       poll_s: float = 5.0, verbose: bool = True) -> bool:
+                       poll_s: float = 5.0, verbose: bool = True,
+                       budget: Optional["QuietBudget"] = None) -> bool:
     """Wait until the GPU is quiet enough to measure on. True if it went quiet.
 
     Times out rather than waiting forever: a machine that stays busy is a fact
     about the machine, and the caller should be told rather than left waiting.
+
+    With a `budget`, this wait may take only what is LEFT of the campaign's
+    budget — the timeout is the campaign's, not this call's.
 
     This is the UTILISATION check, and it is only valid at a moment when our
     own workload is NOT holding the card — before a repetition starts. During
@@ -195,28 +276,41 @@ def wait_for_quiet_gpu(timeout_s: float = 300.0,
     compositing, so a 10% threshold called an idle card busy and the gate
     waited for a quiet that never came.
     """
-    deadline = time.time() + max(0.0, timeout_s)
+    limit = _budget_timeout(timeout_s, budget)
+    started = time.perf_counter()
+    deadline = time.time() + limit
     attempt = 0
     while True:
         attempt += 1
-        busy, peak, used, total = gpu_busy(util_limit_pct=util_limit_pct)
+        # The sampling costs time, and it is paid BEFORE the deadline is
+        # checked — so it has to fit inside what is left, or the wait
+        # overruns the budget it was given.
+        left = max(0.0, deadline - time.time())
+        samples, interval = _sampling_for(left)
+        busy, peak, used, total = gpu_busy(util_limit_pct=util_limit_pct,
+                                          samples=samples, interval=interval)
         if not busy:
             if attempt > 1 and verbose:
                 print(f"  the GPU is quiet now (peak {peak:.0f}% utilisation, "
                       f"{used} MiB of {total} MiB in use)")
+            if budget is not None:
+                budget.spend(time.perf_counter() - started)
             return True
         if time.time() >= deadline:
             if verbose:
-                print(f"  still busy after {timeout_s:.0f}s (peak {peak:.0f}% "
+                print(f"  still busy after {limit:.0f}s (peak {peak:.0f}% "
                       f"utilisation, {used} MiB of {total} MiB held) — measuring "
                       f"anyway; the drift gate will refuse the result if the "
                       f"machine does not hold still")
+            if budget is not None:
+                budget.spend(time.perf_counter() - started)
+                budget.note_exhausted()
             return False
         if verbose:
             print(f"  the GPU is busy (peak {peak:.0f}% utilisation, "
                   f"{used} MiB of {total} MiB held) — waiting for it to settle "
                   f"({max(0, deadline - time.time()):.0f}s left)")
-        time.sleep(poll_s)
+        time.sleep(min(poll_s, max(0.0, deadline - time.time())))
 
 
 #: A process holding at least this much GPU memory counts as a competitor.
@@ -427,19 +521,25 @@ def other_gpu_processes(threshold_mib: int = HEAVY_GPU_COMMIT_MIB) -> List[str]:
 
 
 def wait_for_no_others(timeout_s: float = 300.0, poll_s: float = 5.0,
-                       verbose: bool = True) -> bool:
+                       verbose: bool = True,
+                       budget: Optional["QuietBudget"] = None) -> bool:
     """Wait until nobody else is on the card. True when it is clear.
 
     Unlike the utilisation check, this one is valid DURING a render: it looks
     at WHO holds the card, not at how hard it is working. My own render is
     excluded by process identity, so what is left is somebody else's.
 
+    With a `budget`, this wait may take only what is LEFT of the campaign's
+    budget — the timeout is the campaign's, not this call's.
+
     The waiting is reported once a minute, not once a poll. A contended
     machine can stay contended for hours — a benchmark job on the card, say —
     and a line every five seconds is a log nobody can read and a terminal
     nobody can scroll.
     """
-    deadline = time.time() + max(0.0, timeout_s)
+    limit = _budget_timeout(timeout_s, budget)
+    started = time.perf_counter()
+    deadline = time.time() + limit
     attempt = 0
     last_report = 0.0
     while True:
@@ -448,21 +548,26 @@ def wait_for_no_others(timeout_s: float = 300.0, poll_s: float = 5.0,
         if not others:
             if attempt > 1 and verbose:
                 print("  nobody else is on the card now")
+            if budget is not None:
+                budget.spend(time.perf_counter() - started)
             return True
         now = time.time()
         if now >= deadline:
             if verbose:
-                print(f"  still seeing other GPU work after {timeout_s:.0f}s "
+                print(f"  still seeing other GPU work after {limit:.0f}s "
                       f"({', '.join(others)}) — measuring anyway; the drift "
                       f"gate will refuse the result if the machine does not "
                       f"hold still")
+            if budget is not None:
+                budget.spend(time.perf_counter() - started)
+                budget.note_exhausted()
             return False
         if verbose and now - last_report >= 60.0:
             last_report = now
             print(f"  other GPU work on the card ({', '.join(others)}) — "
                   f"waiting for it to finish "
                   f"({max(0, deadline - now):.0f}s left)")
-        time.sleep(poll_s)
+        time.sleep(min(poll_s, max(0.0, deadline - now)))
 
 
 class ContenderWatcher:

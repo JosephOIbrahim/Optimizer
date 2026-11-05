@@ -53,8 +53,13 @@ class TestEveryLeverWaitsForTheCard(unittest.TestCase):
         self.assertIn("quiet_check", body,
                       f"{name} has no quiet gate — it must wait for the card "
                       f"before each repetition")
-        self.assertIn("_quiet_gate(ctx.quiet_timeout_s)", body,
-                      f"{name} must use the shared gate, not its own")
+        # The gate draws on the CAMPAIGN's budget, not a fresh timeout per
+        # phase. Handing it ctx.quiet_timeout_s again would let a contended
+        # machine wait the timeout before the lever and then the timeout
+        # again before every repetition.
+        self.assertIn("_quiet_gate(ctx.budget())", body,
+                      f"{name} must use the shared gate on the shared budget, "
+                      f"not its own")
 
     def test_frames_per_process_is_gated(self):
         self._assert_gated("lever_frames_per_process")
@@ -112,6 +117,14 @@ class TestTheGateIsTheOneThatKnowsAboutWsl(unittest.TestCase):
         not holding the card. It catches work that holds no memory."""
         body = _lever_body("_quiet_gate")
         self.assertIn("wait_for_quiet_gpu", body)
+
+    def test_the_gate_draws_on_the_shared_budget(self):
+        """Both waits inside the gate must take what is LEFT of the
+        campaign's budget. Without this the gate re-grants the timeout for
+        every repetition."""
+        body = _lever_body("_quiet_gate")
+        self.assertIn("budget=budget", body,
+                      "the gate must pass the budget to its waits")
 
 
 if __name__ == "__main__":
