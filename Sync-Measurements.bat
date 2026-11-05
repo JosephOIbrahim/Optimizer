@@ -7,8 +7,9 @@ REM  The live store is E:\OptimizerV12\measurements (off OneDrive on purpose).
 REM  The repo keeps a copy under measurements\, committed, so a figure quoted
 REM  in the operator cards can be checked against the record it came from.
 REM
-REM  Run this AFTER a measurement campaign, or let the launcher do it:
-REM      Optimize-The-4090.bat --sync --request render
+REM  Optimize-The-4090.bat runs this automatically after every campaign, so
+REM  the committed copies never go stale. Run it by hand only to refresh
+REM  the copies without measuring anything.
 REM
 REM    --check      report what would change; copy and commit nothing
 REM    /nopause    do not wait for a keypress (used when chained from another

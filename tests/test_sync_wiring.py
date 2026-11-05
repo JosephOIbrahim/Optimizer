@@ -1,27 +1,27 @@
 """
-Tests for the --sync wiring in Optimize-The-4090.bat.
+Tests for the automatic sync in Optimize-The-4090.bat.
 
-`--sync` refreshes the committed measurement records after a campaign, so the
-copies under `measurements/` cannot go stale. It is a FLAG, not the default:
-a measurement run must not commit to the operator's repository without them
-asking for it.
+Every campaign commits its measurement records, so the copies under
+`measurements/` — the evidence the operator cards cite — cannot go stale.
+This used to be a `--sync` flag; it is not optional now, because a record
+that is quoted in the cards and not committed is a claim nobody can check.
 
 Three things this has to get right:
 
-  * `--sync` is CONSUMED by the launcher. The python tool has never heard of
-    it, and an unknown flag on that command line is an error.
-  * every OTHER argument still arrives, intact and in order — including a
-    quoted path with spaces. The flag is removed from the forwarded text as
-    a substring rather than by rebuilding a token list, because rebuilding
-    means re-quoting every argument by hand, and a path with spaces is
-    exactly what that would break.
   * the sync runs AFTER the campaign, not before, so it picks up the record
-    the campaign just wrote.
+    the campaign just wrote;
+  * it runs on EVERY campaign — from the command line and from the menu —
+    and it commits ONLY `measurements/`, so a source edit the operator has
+    in flight is left exactly as it was;
+  * every argument still arrives at the tool intact and in order, including
+    a quoted path with spaces and a comma-separated --levers value. cmd.exe
+    splits an argument on a COMMA before a batch file ever sees it, and
+    "%* forwards the text verbatim so the text stays intact.
 
-And one thing it must NOT do: sweep in a source edit the operator has in
-flight. The sync commits only `measurements/`, so an edited `levers.py` is
-left alone. That property is tested in test_sync_measurements.py, against
-the sync itself; this file checks the wiring does not defeat it.
+And one thing it must NOT do: reach the real repository from a test. An
+earlier version of this file pointed at the REAL sync module and committed a
+fake record into it. The test is meant to prove the sync is safe; it must
+not itself be the thing that breaks the repository.
 
 These drive the actual .bat with stand-ins, the way test_bat_parser.py does.
 """
@@ -40,7 +40,7 @@ BAT = REPO / "Optimize-The-4090.bat"
 #: A python stand-in for harness/optimize.py. It prints the arguments it
 #: received, one per line, and says when it ran.
 ECHO = r'''
-import sys, time
+import sys
 print("HARNESS RAN")
 for a in sys.argv[1:]:
     print("ARG:" + a)
@@ -80,37 +80,44 @@ class _Launcher:
         return [ln[4:] for ln in stdout.splitlines() if ln.startswith("ARG:")]
 
 
-class TestTheSyncFlag(unittest.TestCase):
+class TestTheSyncAlwaysRuns(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="sync_wiring_"))
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.l = _Launcher(self.tmp)
 
-    def test_sync_is_consumed_not_forwarded(self):
-        """The python tool has never heard of --sync; forwarding it would be
-        an error on the command line."""
-        args = self.l.args(self.l.run("--request", "render", "--sync"))
-        self.assertNotIn("--sync", args)
-        self.assertIn("--request", args)
-        self.assertIn("render", args)
+    def test_the_sync_runs_on_every_campaign(self):
+        """No flag. It is not optional."""
+        out = self.l.run("--request", "render")
+        self.assertIn("SYNCED", out)
 
     def test_the_sync_runs_after_the_campaign(self):
         """It has to pick up the record the campaign just wrote."""
-        out = self.l.run("--request", "render", "--sync")
-        self.assertIn("SYNCED", out)
+        out = self.l.run("--request", "render")
         self.assertLess(out.index("HARNESS RAN"), out.index("SYNCED"),
                         "the sync must run AFTER the campaign, not before")
 
-    def test_without_the_flag_the_sync_does_not_run(self):
-        """A measurement run must not commit to the operator's repository
-        without them asking for it."""
-        out = self.l.run("--request", "render")
-        self.assertNotIn("SYNCED", out)
+    def test_it_runs_whatever_the_request(self):
+        for request in ("render", "shot", "compute"):
+            with self.subTest(request=request):
+                out = self.l.run("--request", request)
+                self.assertIn("SYNCED", out)
 
-    def test_every_other_flag_still_arrives(self):
+    def test_the_sync_flag_no_longer_exists(self):
+        """It was dropped, so passing it is an error — not a silent no-op."""
+        out = self.l.run("--request", "render", "--sync")
+        # The launcher forwards everything, so --sync reaches the tool, which
+        # does not know it.
+        self.assertIn("--sync", self.l.args(out),
+                      "the launcher should no longer consume --sync")
+        self.assertNotIn("unrecognized", out,
+                         "the stand-in accepts anything, so this only checks "
+                         "that the flag is forwarded rather than swallowed")
+
+    def test_every_flag_still_arrives(self):
         args = self.l.args(self.l.run("--request", "render", "--frames", "5",
                                       "--reps", "3", "--levers", "aov_variant",
-                                      "--variant", "no_crypto", "--sync"))
+                                      "--variant", "no_crypto"))
         for flag, value in (("--request", "render"), ("--frames", "5"),
                             ("--reps", "3"), ("--levers", "aov_variant"),
                             ("--variant", "no_crypto")):
@@ -118,42 +125,35 @@ class TestTheSyncFlag(unittest.TestCase):
                 self.assertIn(flag, args)
                 self.assertIn(value, args)
 
-    def test_a_quoted_path_with_spaces_survives_the_strip(self):
-        """The flag is removed as a substring, not by rebuilding a token list.
-
-        Rebuilding means re-quoting every argument by hand, and a path with
-        spaces is exactly what that would break. This is the reason the
-        launcher forwards %* verbatim.
-        """
+    def test_a_quoted_path_with_spaces_survives(self):
+        """--usd and --settings are paths and prim paths, and are quoted."""
         args = self.l.args(self.l.run("--request", "render",
                                       "--usd", r"E:\scenes\my scene.usd",
-                                      "--sync"))
+                                      "--settings", "/Render/Some Prim"))
         self.assertIn(r"E:\scenes\my scene.usd", args)
-        self.assertNotIn("--sync", args)
+        self.assertIn("/Render/Some Prim", args)
 
     def test_a_comma_separated_lever_list_stays_one_value(self):
         """cmd.exe splits an argument on a COMMA before the batch file sees
         it, so the value must survive as ONE argument."""
         args = self.l.args(self.l.run("--request", "render",
-                                      "--levers", "aov_variant,power_ceiling",
-                                      "--sync"))
+                                      "--levers", "aov_variant,power_ceiling"))
         self.assertIn("aov_variant,power_ceiling", args)
 
-    def test_the_sync_flag_may_appear_in_any_order(self):
-        """The detection is over the whole tail, not just the first
-        argument."""
-        args = self.l.args(self.l.run("--sync", "--request", "render"))
-        self.assertNotIn("--sync", args)
-        self.assertIn("render", args)
+    def test_flags_keep_their_order_and_pairing(self):
+        args = self.l.args(self.l.run("--request", "render", "--frames", "7",
+                                      "--reps", "9", "--levers", "aov_variant"))
+        self.assertEqual(args[args.index("--frames") + 1], "7")
+        self.assertEqual(args[args.index("--reps") + 1], "9")
+        self.assertEqual(args[args.index("--levers") + 1], "aov_variant")
 
-    def test_the_sync_does_not_swallow_a_value(self):
-        """Stripping "--sync" must not eat the argument after it."""
-        args = self.l.args(self.l.run("--request", "render", "--sync", "--reps", "4"))
-        self.assertEqual(args[args.index("--reps") + 1], "4")
-
-    def test_the_usage_text_documents_the_flag(self):
+    def test_the_usage_text_no_longer_advertises_the_flag(self):
         text = BAT.read_text(encoding="utf-8", errors="replace")
-        self.assertIn("--sync", text)
+        # The LABEL, not the `goto :usage` reference that appears earlier.
+        usage = text[text.index("\n:usage"):text.index("\n:done")]
+        self.assertNotIn("--sync", usage,
+                         "the flag was dropped; the usage text must not offer it")
+        self.assertIn("commits its measurement records", usage)
 
 
 class TestTheSyncRunsAfterTheRealCampaign(unittest.TestCase):
@@ -183,12 +183,7 @@ class TestTheSyncRunsAfterTheRealCampaign(unittest.TestCase):
                          "a fake record landed in the real repository")
 
     def test_a_record_written_by_the_campaign_ends_up_committed(self):
-        """The whole point: no staleness.
-
-        A stand-in harness writes a record into a fake live store, the sync
-        runs, and the record must be committed — and the operator's uncommitted
-        source edit must still be uncommitted.
-        """
+        """The whole point: no staleness."""
         store = self.tmp / "store"
         store.mkdir()
         repo = self.tmp / "repo"
@@ -221,10 +216,7 @@ class TestTheSyncRunsAfterTheRealCampaign(unittest.TestCase):
                             f'set "REPO={repo}"')
         text = text.replace("pause >nul", "rem no pause")
         # The launcher calls Sync-Measurements.bat. Point that at the SANDBOX
-        # copy of the sync, with the fake store — never the real one. An
-        # earlier version of this test reached the real repository and
-        # committed a fake record into it, which is exactly the kind of
-        # mistake a test must not be able to make.
+        # copy of the sync, with the fake store — never the real one.
         sync_src = (REPO / "harness" / "sync_measurements.py").read_text(encoding="utf-8")
         sync_src = sync_src.replace('REPO_ROOT = HERE.parent',
                                     f'REPO_ROOT = pathlib.Path(r"{repo}")')
@@ -238,7 +230,7 @@ class TestTheSyncRunsAfterTheRealCampaign(unittest.TestCase):
         out = repo / "bat.bat"
         out.write_text(text, encoding="utf-8")
 
-        r = subprocess.run(["cmd", "/c", str(out), "--request", "render", "--sync"],
+        r = subprocess.run(["cmd", "/c", str(out), "--request", "render"],
                            capture_output=True, text=True, timeout=120)
         self.assertIn("copied 1 record(s)", r.stdout,
                       f"the sync should have copied the new record: {r.stdout}")
@@ -253,6 +245,53 @@ class TestTheSyncRunsAfterTheRealCampaign(unittest.TestCase):
         status = subprocess.run(["git", "status", "--short"], cwd=repo,
                                 capture_output=True, text=True).stdout
         self.assertIn("harness/levers.py", status)
+
+
+class TestTheMenuPath(unittest.TestCase):
+    """Choosing from the menu must reach the tool and sync afterwards.
+
+    The menu calls the run label with the request as its own arguments, so
+    this path has to keep working after the sync was wired in.
+    """
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="sync_menu_"))
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+
+    def _menu_run(self, choice: str) -> str:
+        tmp = self.tmp
+        echo = tmp / "echo.py"
+        echo.write_text(ECHO, encoding="utf-8")
+        (tmp / "Sync-Measurements.bat").write_text(SYNC_STANDIN, encoding="utf-8")
+        text = BAT.read_text(encoding="utf-8", errors="replace")
+        text = text.replace(r'"%PY%" "%REPO%\harness\optimize.py"',
+                            f'"{sys.executable}" "{echo}"')
+        text = text.replace(r'set "REPO=C:\Users\User\OneDrive\Desktop\Optimizer"',
+                            f'set "REPO={tmp}"')
+        text = text.replace("pause >nul", "rem no pause")
+        text = text.replace('set /p "choice=   Choose a request:  "',
+                            f'set "choice={choice}"')
+        # Break only the menu's OWN loop — the last "goto :menu", which is the
+        # one after a run. The earlier one is the ENTRY into the menu, and
+        # replacing that would skip the menu entirely.
+        head, _, tail = text.rpartition("goto :menu")
+        text = head + "goto :end" + tail
+        out = tmp / "bat.bat"
+        out.write_text(text, encoding="utf-8")
+        r = subprocess.run(["cmd", "/c", str(out)],
+                           capture_output=True, text=True, timeout=90)
+        return r.stdout
+
+    def test_a_menu_choice_reaches_the_tool(self):
+        out = self._menu_run("4")
+        args = _Launcher.args(out)
+        self.assertEqual(args, ["--request", "profile"])
+
+    def test_the_sync_runs_after_a_menu_run(self):
+        out = self._menu_run("4")
+        self.assertIn("SYNCED", out)
+        self.assertLess(out.index("HARNESS RAN"), out.index("SYNCED"),
+                        "the sync must run AFTER the campaign, not before")
 
 
 if __name__ == "__main__":

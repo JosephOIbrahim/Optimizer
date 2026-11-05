@@ -31,7 +31,7 @@ Optimize-The-4090.bat --request render|shot|compute|profile
                        [--start-frame N] [--samples N] [--res-scale N]
                        [--reps N] [--warmup N] [--levers a,b]
                        [--variant beauty_only|no_crypto] [--threads N]
-                       [--probe] [--quiet-timeout SECONDS] [--sync]
+                       [--probe] [--quiet-timeout SECONDS]
 ```
 
 `--request` defaults to render, so an operator who passes only `--usd` gets a
@@ -46,12 +46,13 @@ measures about 0.07% of the metric against a 5% threshold — too small to flip
 a verdict, and its sign is not established. See the position-bias note under
 rule 1.
 
-**`--sync` refreshes the committed records after the campaign.** It copies the
-measurement records into `measurements/` in the repo and commits them, so the
-copies the cards cite as evidence cannot go stale. It is a flag, not the
-default — a measurement run does not commit to your repository unless you ask
-it to. It commits **only** `measurements/`, so any source edit you have in
-flight is left alone. The same thing on its own:
+**Every campaign commits its measurement records.** After the run, the records
+are copied into `measurements/` in the repo and committed, so the copies this
+card quotes as evidence cannot go stale. It is not a flag — a record that is
+cited here and not committed is a claim nobody can check.
+
+Only `measurements/` is committed, so any source edit you have in flight is
+left exactly as it was. To do it by hand:
 
 ```
 Sync-Measurements.bat            copy the records in and commit them
