@@ -42,6 +42,19 @@ if not exist "%V12PY%" (
     exit /b 1
 )
 
+REM --- was --sync named? It is CONSUMED here and acted on after the run ---
+REM Checked over the whole tail, so the flags may appear in any order.
+REM
+REM The flag is then removed from the forwarded text as a SUBSTRING rather
+REM than by rebuilding a token list. Rebuilding a list means re-quoting every
+REM argument by hand, and a quoted path with spaces is exactly the thing that
+REM would break -- and the whole reason this file forwards %* verbatim.
+set "SYNC=0"
+echo %* | findstr /i /c:"--sync" >nul
+if not errorlevel 1 set "SYNC=1"
+set "ARGS=%*"
+set "ARGS=!ARGS:--sync=!"
+
 REM --- was a request named on the command line? -----------------------------
 REM Checked over the whole tail, not just %1, so the flags may appear in any
 REM order. Without a request, the menu asks which one.
@@ -56,8 +69,14 @@ goto :run
 
 :run
 cls
-"%PY%" "%REPO%\harness\optimize.py" %*
-exit /b %errorlevel%
+"%PY%" "%REPO%\harness\optimize.py" !ARGS!
+set "RC=!ERRORLEVEL!"
+if "!SYNC!"=="1" (
+    echo.
+    echo   refreshing the committed measurement records...
+    call "%REPO%\Sync-Measurements.bat" /nopause
+)
+exit /b !RC!
 
 :menu
 cls
@@ -93,19 +112,23 @@ echo.
 set "choice="
 set /p "choice=   Choose a request:  "
 if /i "!choice!"=="1" (
-    call :run --request shot
+    set "ARGS=--request shot"
+    call :run
     goto :done
 )
 if /i "!choice!"=="2" (
-    call :run --request render
+    set "ARGS=--request render"
+    call :run
     goto :done
 )
 if /i "!choice!"=="3" (
-    call :run --request compute
+    set "ARGS=--request compute"
+    call :run
     goto :done
 )
 if /i "!choice!"=="4" (
-    call :run --request profile
+    set "ARGS=--request profile"
+    call :run
     goto :done
 )
 if /i "!choice!"=="5" (
@@ -134,11 +157,16 @@ echo                       [--usd PATH] [--settings PRIM] [--frames N]
 echo                       [--start-frame N] [--samples N] [--res-scale N]
 echo                       [--reps N] [--warmup N] [--variant beauty_only^|no_crypto]
 echo                       [--levers a,b] [--threads N] [--probe]
-echo                       [--quiet-timeout SECONDS]
+echo                       [--quiet-timeout SECONDS] [--sync]
 echo.
 echo   With no arguments it asks which request you want.
 echo.
 echo   --request defaults to render.
+echo.
+echo   --sync copies the measurement records into the repo and commits them
+echo          after the campaign, so the committed copies stay current. It
+echo          commits ONLY measurements\, never any source edit you have in
+echo          flight.
 echo.
 echo   Levers: frames_per_process, aov_variant, power_ceiling,
 echo            husk_threads, manual

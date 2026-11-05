@@ -7,7 +7,13 @@ REM  The live store is E:\OptimizerV12\measurements (off OneDrive on purpose).
 REM  The repo keeps a copy under measurements\, committed, so a figure quoted
 REM  in the operator cards can be checked against the record it came from.
 REM
-REM  Run this AFTER a measurement campaign.
+REM  Run this AFTER a measurement campaign, or let the launcher do it:
+REM      Optimize-The-4090.bat --sync --request render
+REM
+REM    --check      report what would change; copy and commit nothing
+REM    /nopause    do not wait for a keypress (used when chained from another
+REM                 launcher, which is already the thing the operator is
+REM                 waiting on)
 REM ===========================================================================
 setlocal enabledelayedexpansion
 title Sync Measurements - Optimizer repo
@@ -19,22 +25,33 @@ set "V12PY=C:\Python314\python.exe"
 cd /d "%REPO%"
 set "PYTHONUNBUFFERED=1"
 
-if not exist "%V12PY%" (echo [ERROR] %V12PY% missing & pause & exit /b 1)
-if not exist "%REPO%\harness\sync_measurements.py" (echo [ERROR] harness\sync_measurements.py missing & pause & exit /b 1)
+set "PAUSE=1"
+set "ARGS="
+for %%A in (%*) do (
+    if /I "%%~A"=="/nopause" (set "PAUSE=0") else (set "ARGS=!ARGS! %%~A")
+)
+
+if not exist "%V12PY%" (echo [ERROR] %V12PY% missing & goto :fail)
+if not exist "%REPO%\harness\sync_measurements.py" (echo [ERROR] harness\sync_measurements.py missing & goto :fail)
 
 if /i "%~1"=="--check" goto check
 
-"%V12PY%" harness\sync_measurements.py %*
-set RC=%ERRORLEVEL%
+"%V12PY%" harness\sync_measurements.py !ARGS!
+set "RC=!ERRORLEVEL!"
 echo.
-if %RC%==0 (echo [OK] done) else (echo [FAILED] exit %RC%)
-pause
-exit /b %RC%
+if !RC!==0 (echo [OK] done) else (echo [FAILED] exit !RC!)
+if "!PAUSE!"=="1" pause
+exit /b !RC!
 
 :check
 echo.
 echo --- what would change, if anything ---
 "%V12PY%" harness\sync_measurements.py --check
 echo.
-pause
+if "!PAUSE!"=="1" pause
 exit /b 0
+
+:fail
+echo [ERROR] the sync could not run.
+if "!PAUSE!"=="1" pause
+exit /b 1
