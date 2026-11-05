@@ -1,0 +1,17 @@
+# MachineOptimizer 2026 — tunables. Everything here is safe to edit.
+
+[general]
+# Proposals below this confidence are dropped.
+min_confidence = 0.6
+# Watchdog re-check interval (seconds).
+interval_seconds = 20
+
+[thermal]
+# RTX 4090 GDDR6X guardrails (°C). The watchdog holds new changes at/above 'reduce'.
+thermal_warn = 83
+thermal_reduce = 87
+thermal_critical = 90
+
+[vram]
+# Fraction of 24GB VRAM above which sysmem-fallback risk is flagged.
+vram_hard_pct = 0.96

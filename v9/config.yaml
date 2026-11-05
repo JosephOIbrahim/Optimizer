@@ -1,0 +1,244 @@
+# ============================================================================
+# Optimizer V9 — configuration
+# ============================================================================
+# First-principles rule (DESIGN_V9 §4.1): DETECT, DON'T HARDCODE.
+#   * No driver version lives here — hardware.detect() owns it at runtime.
+#   * No sm_arch / VRAM literal is authoritative here — they are GAP hints only,
+#     used solely when a probe (nvidia-smi / pynvml) couldn't resolve the value.
+#   * No D:\ cache literal — mutable paths come from v9/paths.py (off-OneDrive),
+#     injected by config.load_config().
+#
+# Anything you set here is deep-merged OVER the baked-in defaults in config.py;
+# the live HardwareProfile then wins over this for any fact it can detect.
+# This file may be deleted entirely — the system runs headless on defaults.
+
+identity:
+  name: "Optimizer V9"
+  version: "9.0"
+
+# ----------------------------------------------------------------------------
+# HARDWARE — GAP / OVERRIDE HINTS ONLY (detection is authoritative)
+# ----------------------------------------------------------------------------
+# Current rig deltas, kept ONLY as fallbacks for when probes are unavailable.
+# Driver version is deliberately absent: detection supplies the real one
+# (the live Studio driver) and a stale literal here could only lie.
+hardware:
+  gpu:
+    model: "NVIDIA GeForce RTX 4090"   # fallback name if nvidia-smi/pynvml absent
+    resizable_bar: true                # fallback only; pynvml probe wins
+    pcie_gen: 4                         # fallback only
+    vram_total_gb: 24                  # fallback only; probe wins
+  cpu:
+    model: "AMD Ryzen Threadripper PRO 7965WX"
+  system:
+    ram_gb: 128
+    display: "Apple Pro Display XDR 6K"   # delta vs prior rig; informational
+
+# ----------------------------------------------------------------------------
+# GPU config-tuning advisor — CUDA / cuDNN env vars, driver knobs (instant)
+# ----------------------------------------------------------------------------
+gpu:
+  enabled: true
+  min_confidence: 0.85
+  cuda_env_vars:
+    CUDA_CACHE_MAXSIZE: "4294967296"     # 4 GB shader cache
+    CUDA_CACHE_DISABLE: "0"
+    CUDA_FORCE_PTX_JIT: "0"
+    CUDA_MODULE_LOADING: "LAZY"
+    CUBLAS_WORKSPACE_CONFIG: ":4096:8"
+  cudnn_env_vars:
+    CUDNN_BENCHMARK: "1"
+    TORCH_CUDNN_V8_API_ENABLED: "1"
+  power_mode: "prefer_maximum_performance"
+
+# ----------------------------------------------------------------------------
+# System integration advisor — registry, process priority, thermal, PCIe
+# ----------------------------------------------------------------------------
+system:
+  enabled: true
+  min_confidence: 0.90
+  process_priority:
+    houdini: "ABOVE_NORMAL"
+    unrealeditor: "ABOVE_NORMAL"
+    comfyui: "NORMAL"
+  # CPU pinning is OFF. The 7965WX is homogeneous: 24 identical Zen 4 cores /
+  # 48 logical processors over 4 CCDs, no P/E cores. The old 0-20 / 21-23 split
+  # would pin Houdini/UE to 21 of 48 LPs. enable_pinning:false is the off switch
+  # (the advisor defaults it to true, so the key must stay — deleting the block
+  # would deep-merge config.py's 0-20 defaults back in).
+  cpu_affinity:
+    enable_pinning: false
+    performance_cores: []
+    background_cores: []
+  # advisors/system.py reads `system.affinity`, not `system.cpu_affinity` (key
+  # mismatch, so pinning is latent today). Disable it under the key the code
+  # actually reads too, so fixing that mismatch can't silently re-enable it.
+  affinity:
+    enable_pinning: false
+    performance_cores: []
+    background_cores: []
+  thermal:
+    gpu_temp_warning_c: 83
+    gpu_temp_critical_c: 90
+    power_limit_w: 450                   # RTX 4090 TDP
+  pcie:
+    check_gen4: true
+    check_x16_lanes: true
+    check_resizable_bar: true
+  windows_gpu_scheduler:
+    enabled: true
+    registry_key: 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers'
+    value_name: "HwSchMode"
+    value_data: 2                        # Hardware-accelerated GPU scheduling
+
+# ----------------------------------------------------------------------------
+# ComfyUI build-pipeline advisor — PRIMARY workload (SDXL/Flux/Cosmos/Wan/DiT)
+# ----------------------------------------------------------------------------
+comfyui:
+  enabled: true
+  min_confidence: 0.80
+  api_host: "127.0.0.1"
+  api_port: 8188
+  # install_dir is a fallback hint; the advisor auto-detects the real install
+  # (running proc / comfy-cli workspace / common dirs). This box: C:/ComfyUI.
+  install_dir: "C:/ComfyUI"
+  watch_models_dir: "C:/ComfyUI/models"
+  websocket_subscribe: true
+  output_dir: ""             # "" -> <install_dir>/output ; scanned for CLI renders
+  cli_scan_enabled: true
+  # NOTE: telemetry_db_path is injected off-OneDrive by config.py — not set here.
+  env_vars:
+    PYTORCH_CUDA_ALLOC_CONF: "max_split_size_mb:512,garbage_collection_threshold:0.9"
+    FORCE_MEM_EFFICIENT_ATTN: "1"
+    CUDA_MODULE_LOADING: "LAZY"
+  speculative_compile:
+    min_usage_count: 3
+    lookback_days: 14
+    only_when_gpu_idle_pct: 5
+    idle_dwell_seconds: 30
+    max_concurrent_compiles: 1
+
+# ----------------------------------------------------------------------------
+# Houdini build-pipeline advisor (preserved workload)
+# ----------------------------------------------------------------------------
+houdini:
+  enabled: true
+  min_confidence: 0.80
+  env_vars:
+    HOUDINI_OCL_DEVICENUMBER: "0"
+    HOUDINI_OCL_DEVICETYPE: "GPU"
+    HOUDINI_OCL_VENDOR: "NVIDIA"
+    HOUDINI_VDB_FAST_TEMP_FILE: "1"
+    HOUDINI_DSO_ERROR: "2"
+  karma_xpu:
+    samples_per_pixel_min: 256
+    samples_per_pixel_max: 2048
+    enable_denoiser: true
+    max_ray_depth: 8
+    russian_roulette_depth: 3
+  pdg_tops:
+    # max_concurrent_cooks is overwritten at load time with the DETECTED
+    # logical-core count; this value is a fallback only.
+    max_concurrent_cooks: 24
+    gpu_scheduling: true
+
+# ----------------------------------------------------------------------------
+# UE5 build-pipeline advisor — Engine.ini console variables (preserved)
+# ----------------------------------------------------------------------------
+ue5:
+  enabled: true
+  min_confidence: 0.80
+  engine_ini_path: "C:/Users/User/AppData/Local/UnrealEngine/Engine/Config/UserEngine.ini"
+  console_variables:
+    r.Lumen.HardwareRayTracing: "1"
+    r.Lumen.HardwareRayTracing.LightingMode: "2"
+    r.Lumen.Reflections.ScreenTraces: "4"
+    r.Lumen.RadiosityProbeSpacing: "4.0"
+    r.Lumen.TranslucencyReflections.FrontLayer.EnableForProject: "1"
+    r.Nanite.MaxPixelsPerEdge: "1.0"
+    r.Nanite.Streaming.NumInitialRootPages: "512"
+    r.Shadow.Virtual.Cache.StaticSeparate: "1"
+    r.Shadow.Virtual.ResolutionLodBiasDirectional: "0.0"
+    r.Shadow.Virtual.MaxPhysicalPages: "4096"
+    r.PathTracing.SamplesPerPixel: "256"
+    r.PathTracing.MaxBounces: "32"
+    r.PathTracing.Denoiser: "1"
+  ddc_path: "D:/UE_DDC"
+  ddc_fallback_path: "C:/UE_DDC"
+
+# ----------------------------------------------------------------------------
+# Cross-app coordinator — foreground wins; background compiles pause
+# ----------------------------------------------------------------------------
+coordinator:
+  enabled: true
+  min_confidence: 0.85
+  idle_window_seconds: 60.0
+  # GB, COOPERATIVE budgets: no cross-process GPU partitioning exists on this
+  # box (MIG/MPS/TCC unavailable on a GeForce under Windows), and the XDR 6K
+  # compositor holds ~1-2 GB of the 24 GB before any app starts, so app totals
+  # stay at ~20 GB. Fencing below is advisory — it can warn, never cap.
+  vram_split:
+    one_app_active: { primary: 18 }
+    two_apps_active: { comfyui: 10, houdini: 10, ue5: 10 }   # any two -> 20 GB
+    three_apps_active: { comfyui: 3, houdini: 9, ue5: 8 }    # 20 GB + ~2 GB compositor/sys
+  fencing:
+    soft_limit_percent: 90
+    hard_limit_percent: 95
+    monitoring_interval_ms: 100
+
+# ----------------------------------------------------------------------------
+# TensorRT engine cache + background compiler
+# ----------------------------------------------------------------------------
+# cache_dir / cache_db_path are injected off-OneDrive by config.py.
+# invalidate_on_driver_change is keyed off the DETECTED driver via
+# HardwareProfile.cache_key_fields() in the build layer — no driver literal here.
+tensorrt:
+  enabled: true
+  precision_priority: ["fp16"]           # fp8 added in a later phase
+  cache_size_gb: 200
+  invalidate_on_driver_change: true
+  quality_gate:                          # Pareto admission gate
+    min_speedup: 1.30
+    max_lpips: 0.04
+    min_clip_delta: -0.02
+
+# ----------------------------------------------------------------------------
+# CUTLASS acceleration — the headline ingredient (Houdini Vellum/Pyro FP8 GEMM)
+# ----------------------------------------------------------------------------
+# Opt-in: CUTLASS only joins the recipe when enabled AND the toolchain exists.
+#   1. run `v9 cutlass bootstrap`   (clones CUTLASS off-OneDrive, sets $CUTLASS_PATH)
+#   2. set enabled: true below
+#   3. `v9 benchmark`               (proves the FP8-vs-fp16 GEMM speedup)
+acceleration:
+  cutlass:
+    enabled: true              # ACTIVE — bootstrapped 2026-06-02, smoke-verified sm_89
+    auto_bootstrap: false       # never clone inside an optimization cycle
+    install_dir: ""             # "" -> <V9 data root>/cutlass (off-OneDrive)
+    version_tag: "v4.5.1"       # matches CUDA 13.2 toolchain on this rig
+    vellum:
+      enabled: true
+      precision: "fp8_e4m3"
+      default_gemm: [4096, 4096, 4096]   # (M, N, K) — multiples of 8 for FP8
+
+# ----------------------------------------------------------------------------
+# Monitoring / telemetry  (db paths injected off-OneDrive by config.py)
+# ----------------------------------------------------------------------------
+monitoring:
+  enabled: true
+  sampling_interval_ms: 100
+  ring_buffer_duration_seconds: 3600
+  alerts:
+    vram_warning_threshold_percent: 90
+    vram_critical_threshold_percent: 95
+    temp_warning_c: 83
+    temp_critical_c: 90
+    power_limit_w: 450
+
+# ----------------------------------------------------------------------------
+# Logging  (file path injected off-OneDrive by config.py)
+# ----------------------------------------------------------------------------
+logging:
+  level: "INFO"
+  max_size_mb: 100
+  backup_count: 5
+  verbose_advisors: false

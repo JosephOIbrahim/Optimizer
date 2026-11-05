@@ -1,0 +1,293 @@
+[Nightly Evolution] Starting at Tue 11/25/2025 19:43:39.40 
+[Info] Running genetic evolution... 
+[19:43:39] INFO     Initialized 5 experts              gpu_optimizer_v6.py:1042
+           INFO     Initializing new genetic population... genetic_tuner.py:104
+           INFO     OptimizerOrchestrator initialized   gpu_optimizer_v6.py:991
+                    successfully                                               
+
+=== Starting Genetic Evolution Cycle ===
+Optimizing configuration parameters based on fitness...
+           INFO     Starting evolution cycle for           genetic_tuner.py:202
+                    Generation 0                                               
+           INFO     Evaluating genome gen0_baseline...     genetic_tuner.py:175
+           INFO     Evaluating genome gen0_mutant_1...     genetic_tuner.py:175
+           INFO     Evaluating genome gen0_mutant_2...     genetic_tuner.py:175
+           INFO     Evaluating genome gen0_mutant_3...     genetic_tuner.py:175
+           INFO     Evaluating genome gen0_mutant_4...     genetic_tuner.py:175
+           INFO     Best genome: gen0_mutant_1 (Score:     genetic_tuner.py:214
+                    103.33)                                                    
+
+Evolution Complete!
+Best Fitness Score: 103.33
+Top Configuration Genes:
+  - r.Streaming.PoolSize: 12288
+  - r.Lumen.ScreenTraces: 1
+  - r.Nanite.MaxPixelsPerEdge: 1.0
+  - HOUDINI_PDG_MAX_CONCURRENT_COOKS: 24
+  - HOUDINI_VDB_FAST_TEMP_FILE: 1
+           INFO     Applying: adjust_quality on        gpu_optimizer_v6.py:1208
+                    evolved_pool_size (confidence:                             
+                    1.00)                                                      
+           INFO     Updated r.Streaming.PoolSize in    gpu_optimizer_v6.py:1431
+                    C:/Users/User/AppData/Local/Unreal                         
+                    Engine/Engine/Config/UserEngine.in                         
+                    i                                                          
+[Success] Evolution cycle completed successfully. 
+[Nightly Evolution] Finished at Tue 11/25/2025 19:43:39.81 
+--------------------------------------------------- 
+[Nightly Evolution] Starting at Sun 12/07/2025 18:27:04.80 
+[Info] Running genetic evolution... 
+[18:27:05] INFO     Initialized 5 experts              gpu_optimizer_v6.py:1042
+           INFO     Initializing new genetic population... genetic_tuner.py:104
+           INFO     OptimizerOrchestrator initialized   gpu_optimizer_v6.py:991
+                    successfully                                               
+
+=== Starting Genetic Evolution Cycle ===
+Optimizing configuration parameters based on fitness...
+           INFO     Starting evolution cycle for           genetic_tuner.py:202
+                    Generation 0                                               
+           INFO     Evaluating genome gen0_baseline...     genetic_tuner.py:175
+           INFO     Evaluating genome gen0_mutant_1...     genetic_tuner.py:175
+           INFO     Evaluating genome gen0_mutant_2...     genetic_tuner.py:175
+           INFO     Evaluating genome gen0_mutant_3...     genetic_tuner.py:175
+           INFO     Evaluating genome gen0_mutant_4...     genetic_tuner.py:175
+           INFO     Best genome: gen0_mutant_2 (Score:     genetic_tuner.py:214
+                    104.87)                                                    
+
+Evolution Complete!
+Best Fitness Score: 104.87
+Top Configuration Genes:
+  - r.Streaming.PoolSize: 12288
+  - r.Lumen.ScreenTraces: 1
+  - r.Nanite.MaxPixelsPerEdge: 1.0
+  - HOUDINI_PDG_MAX_CONCURRENT_COOKS: 24
+  - HOUDINI_VDB_FAST_TEMP_FILE: 1
+           INFO     Applying: adjust_quality on        gpu_optimizer_v6.py:1208
+                    evolved_pool_size (confidence:                             
+                    1.00)                                                      
+           INFO     Updated r.Streaming.PoolSize in    gpu_optimizer_v6.py:1431
+                    C:/Users/User/AppData/Local/Unreal                         
+                    Engine/Engine/Config/UserEngine.in                         
+                    i                                                          
+[Success] Evolution cycle completed successfully. 
+[Nightly Evolution] Finished at Sun 12/07/2025 18:27:05.28 
+--------------------------------------------------- 
+[Nightly Evolution] Starting at Sun 12/07/2025 18:27:21.07 
+[Info] Running genetic evolution... 
+[18:27:21] INFO     Initialized 5 experts              gpu_optimizer_v6.py:1042
+           INFO     Loaded population of 5 genomes          genetic_tuner.py:85
+           INFO     OptimizerOrchestrator initialized   gpu_optimizer_v6.py:991
+                    successfully                                               
+
+=== Starting Genetic Evolution Cycle ===
+Optimizing configuration parameters based on fitness...
+           INFO     Starting evolution cycle for           genetic_tuner.py:202
+                    Generation 1                                               
+           INFO     Evaluating genome gen2_1764117819...   genetic_tuner.py:175
+           INFO     Evaluating genome gen2_1764117819...   genetic_tuner.py:175
+           INFO     Evaluating genome gen1_1764117819...   genetic_tuner.py:175
+           INFO     Evaluating genome gen1_1764117819...   genetic_tuner.py:175
+           INFO     Best genome: gen0_mutant_1 (Score:     genetic_tuner.py:214
+                    103.33)                                                    
+
+Evolution Complete!
+Best Fitness Score: 103.33
+Top Configuration Genes:
+  - r.Streaming.PoolSize: 12288
+  - r.Lumen.ScreenTraces: 1
+  - r.Nanite.MaxPixelsPerEdge: 1.0
+  - HOUDINI_PDG_MAX_CONCURRENT_COOKS: 24
+  - HOUDINI_VDB_FAST_TEMP_FILE: 1
+           INFO     Applying: adjust_quality on        gpu_optimizer_v6.py:1208
+                    evolved_pool_size (confidence:                             
+                    1.00)                                                      
+           INFO     Updated r.Streaming.PoolSize in    gpu_optimizer_v6.py:1431
+                    C:/Users/User/AppData/Local/Unreal                         
+                    Engine/Engine/Config/UserEngine.in                         
+                    i                                                          
+[Success] Evolution cycle completed successfully. 
+[Nightly Evolution] Finished at Sun 12/07/2025 18:27:21.44 
+--------------------------------------------------- 
+[Nightly Evolution] Starting at Mon 12/08/2025  3:00:01.60 
+[Info] Running genetic evolution... 
+[03:00:02] INFO     Initialized 5 experts              gpu_optimizer_v6.py:1042
+           INFO     Loaded population of 5 genomes          genetic_tuner.py:85
+           INFO     OptimizerOrchestrator initialized   gpu_optimizer_v6.py:991
+                    successfully                                               
+
+=== Starting Genetic Evolution Cycle ===
+Optimizing configuration parameters based on fitness...
+           INFO     Starting evolution cycle for           genetic_tuner.py:202
+                    Generation 1                                               
+           INFO     Evaluating genome gen2_1765150041...   genetic_tuner.py:175
+           INFO     Evaluating genome gen2_1765150041...   genetic_tuner.py:175
+           INFO     Evaluating genome gen2_1765150041...   genetic_tuner.py:175
+           INFO     Evaluating genome gen2_1765150041...   genetic_tuner.py:175
+           INFO     Best genome: gen2_1765150041 (Score:   genetic_tuner.py:214
+                    103.97)                                                    
+           ERROR    Failed to save state: [Errno 13]        genetic_tuner.py:97
+                    Permission denied:                                         
+                    'data\\genetic_evolution\\current_popul                    
+                    ation.json'                                                
+
+Evolution Complete!
+Best Fitness Score: 103.97
+Top Configuration Genes:
+  - r.Streaming.PoolSize: 12288
+  - r.Lumen.ScreenTraces: 1
+  - r.Nanite.MaxPixelsPerEdge: 0.9
+  - HOUDINI_PDG_MAX_CONCURRENT_COOKS: 24
+  - HOUDINI_VDB_FAST_TEMP_FILE: 1
+           INFO     Applying: adjust_quality on        gpu_optimizer_v6.py:1208
+                    evolved_pool_size (confidence:                             
+                    1.00)                                                      
+           INFO     Updated r.Streaming.PoolSize in    gpu_optimizer_v6.py:1431
+                    C:/Users/User/AppData/Local/Unreal                         
+                    Engine/Engine/Config/UserEngine.in                         
+                    i                                                          
+[Success] Evolution cycle completed successfully. 
+[Nightly Evolution] Finished at Mon 12/08/2025  3:00:02.08 
+--------------------------------------------------- 
+[Nightly Evolution] Starting at Wed 12/10/2025 17:58:42.38 
+[Info] Running genetic evolution... 
+[17:58:42] INFO     Initialized 5 experts              gpu_optimizer_v6.py:1042
+           INFO     Loaded population of 5 genomes          genetic_tuner.py:85
+           INFO     OptimizerOrchestrator initialized   gpu_optimizer_v6.py:991
+                    successfully                                               
+
+=== Starting Genetic Evolution Cycle ===
+Optimizing configuration parameters based on fitness...
+           INFO     Starting evolution cycle for           genetic_tuner.py:202
+                    Generation 1                                               
+           INFO     Evaluating genome gen2_1765150025...   genetic_tuner.py:175
+           INFO     Evaluating genome gen2_1765150025...   genetic_tuner.py:175
+           INFO     Evaluating genome gen2_1765150025...   genetic_tuner.py:175
+           INFO     Evaluating genome gen2_1765150025...   genetic_tuner.py:175
+           INFO     Best genome: gen0_mutant_2 (Score:     genetic_tuner.py:214
+                    104.87)                                                    
+
+Evolution Complete!
+Best Fitness Score: 104.87
+Top Configuration Genes:
+  - r.Streaming.PoolSize: 12288
+  - r.Lumen.ScreenTraces: 1
+  - r.Nanite.MaxPixelsPerEdge: 1.0
+  - HOUDINI_PDG_MAX_CONCURRENT_COOKS: 24
+  - HOUDINI_VDB_FAST_TEMP_FILE: 1
+           INFO     Applying: adjust_quality on        gpu_optimizer_v6.py:1208
+                    evolved_pool_size (confidence:                             
+                    1.00)                                                      
+           INFO     Updated r.Streaming.PoolSize in    gpu_optimizer_v6.py:1431
+                    C:/Users/User/AppData/Local/Unreal                         
+                    Engine/Engine/Config/UserEngine.in                         
+                    i                                                          
+[Success] Evolution cycle completed successfully. 
+[Nightly Evolution] Finished at Wed 12/10/2025 17:58:42.84 
+--------------------------------------------------- 
+[Nightly Evolution] Starting at Wed 12/10/2025 17:58:49.89 
+[Info] Running genetic evolution... 
+[17:58:50] INFO     Initialized 5 experts              gpu_optimizer_v6.py:1042
+           INFO     Loaded population of 5 genomes          genetic_tuner.py:85
+           INFO     OptimizerOrchestrator initialized   gpu_optimizer_v6.py:991
+                    successfully                                               
+
+=== Starting Genetic Evolution Cycle ===
+Optimizing configuration parameters based on fitness...
+           INFO     Starting evolution cycle for           genetic_tuner.py:202
+                    Generation 1                                               
+           INFO     Evaluating genome gen2_1765150041...   genetic_tuner.py:175
+           INFO     Evaluating genome gen2_1765150041...   genetic_tuner.py:175
+           INFO     Evaluating genome gen2_1765150041...   genetic_tuner.py:175
+           INFO     Evaluating genome gen2_1765150041...   genetic_tuner.py:175
+           INFO     Best genome: gen0_mutant_1 (Score:     genetic_tuner.py:214
+                    103.33)                                                    
+
+Evolution Complete!
+Best Fitness Score: 103.33
+Top Configuration Genes:
+  - r.Streaming.PoolSize: 12288
+  - r.Lumen.ScreenTraces: 1
+  - r.Nanite.MaxPixelsPerEdge: 1.0
+  - HOUDINI_PDG_MAX_CONCURRENT_COOKS: 24
+  - HOUDINI_VDB_FAST_TEMP_FILE: 1
+           INFO     Applying: adjust_quality on        gpu_optimizer_v6.py:1208
+                    evolved_pool_size (confidence:                             
+                    1.00)                                                      
+           INFO     Updated r.Streaming.PoolSize in    gpu_optimizer_v6.py:1431
+                    C:/Users/User/AppData/Local/Unreal                         
+                    Engine/Engine/Config/UserEngine.in                         
+                    i                                                          
+[Success] Evolution cycle completed successfully. 
+[Nightly Evolution] Finished at Wed 12/10/2025 17:58:50.28 
+--------------------------------------------------- 
+[Nightly Evolution] Starting at Thu 12/11/2025 12:06:46.47 
+[Info] Running genetic evolution... 
+[12:06:46] INFO     Initialized 5 experts              gpu_optimizer_v6.py:1042
+           INFO     Loaded population of 5 genomes          genetic_tuner.py:85
+           INFO     OptimizerOrchestrator initialized   gpu_optimizer_v6.py:991
+                    successfully                                               
+
+=== Starting Genetic Evolution Cycle ===
+Optimizing configuration parameters based on fitness...
+           INFO     Starting evolution cycle for           genetic_tuner.py:202
+                    Generation 1                                               
+           INFO     Evaluating genome gen2_1765407522...   genetic_tuner.py:175
+           INFO     Evaluating genome gen2_1765407522...   genetic_tuner.py:175
+           INFO     Evaluating genome gen3_1765407522...   genetic_tuner.py:175
+           INFO     Evaluating genome gen2_1765407522...   genetic_tuner.py:175
+           INFO     Best genome: gen0_mutant_2 (Score:     genetic_tuner.py:214
+                    104.87)                                                    
+
+Evolution Complete!
+Best Fitness Score: 104.87
+Top Configuration Genes:
+  - r.Streaming.PoolSize: 12288
+  - r.Lumen.ScreenTraces: 1
+  - r.Nanite.MaxPixelsPerEdge: 1.0
+  - HOUDINI_PDG_MAX_CONCURRENT_COOKS: 24
+  - HOUDINI_VDB_FAST_TEMP_FILE: 1
+           INFO     Applying: adjust_quality on        gpu_optimizer_v6.py:1208
+                    evolved_pool_size (confidence:                             
+                    1.00)                                                      
+           INFO     Updated r.Streaming.PoolSize in    gpu_optimizer_v6.py:1431
+                    C:/Users/User/AppData/Local/Unreal                         
+                    Engine/Engine/Config/UserEngine.in                         
+                    i                                                          
+[Success] Evolution cycle completed successfully. 
+[Nightly Evolution] Finished at Thu 12/11/2025 12:06:46.92 
+--------------------------------------------------- 
+[Nightly Evolution] Starting at Wed 05/06/2026 12:55:22.35 
+[Info] Running genetic evolution... 
+did not find executable at 'C:\Users\User\miniconda3\python.exe': The system cannot find the path specified.
+
+[Error] Evolution cycle failed with code 103. 
+[Nightly Evolution] Finished at Wed 05/06/2026 12:55:22.39 
+--------------------------------------------------- 
+[Nightly Evolution] Starting at Wed 05/06/2026 13:03:12.04 
+[Info] Running genetic evolution... 
+did not find executable at 'C:\Users\User\miniconda3\python.exe': The system cannot find the path specified.
+
+[Error] Evolution cycle failed with code 103. 
+[Nightly Evolution] Finished at Wed 05/06/2026 13:03:12.09 
+--------------------------------------------------- 
+[Nightly Evolution] Starting at Wed 05/06/2026 13:50:06.17 
+[Info] Running genetic evolution... 
+did not find executable at 'C:\Users\User\miniconda3\python.exe': The system cannot find the path specified.
+
+[Error] Evolution cycle failed with code 103. 
+[Nightly Evolution] Finished at Wed 05/06/2026 13:50:06.21 
+--------------------------------------------------- 
+[Nightly Evolution] Starting at Thu 05/07/2026 15:56:32.21 
+[Info] Running genetic evolution... 
+did not find executable at 'C:\Users\User\miniconda3\python.exe': The system cannot find the path specified.
+
+[Error] Evolution cycle failed with code 103. 
+[Nightly Evolution] Finished at Thu 05/07/2026 15:56:32.25 
+--------------------------------------------------- 
+[Nightly Evolution] Starting at Thu 05/07/2026 15:56:36.42 
+[Info] Running genetic evolution... 
+did not find executable at 'C:\Users\User\miniconda3\python.exe': The system cannot find the path specified.
+
+[Error] Evolution cycle failed with code 103. 
+[Nightly Evolution] Finished at Thu 05/07/2026 15:56:36.46 
+--------------------------------------------------- 

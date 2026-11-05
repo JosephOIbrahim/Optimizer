@@ -1,0 +1,253 @@
+{
+  "schema": "v12.catalog_relevance/1",
+  "model": "jev-1.13.0",
+  "drafted_ts": "2026-10-01T16:18:26Z",
+  "reviewed": false,
+  "entries": {
+    "nvml_pin_clocks": {
+      "diffusion": 3,
+      "vellum": 3,
+      "render": 3,
+      "rationale": "jev-1.13.0 Score, confidence d=3@0.72 v=3@0.97 r=3@0.92",
+      "source": "jev-draft"
+    },
+    "kernel_vellum_gemm": {
+      "diffusion": null,
+      "vellum": null,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.52 v=unsure@0.56 r=unsure@0.27",
+      "source": "jev-draft"
+    },
+    "cuda_cache_maxsize": {
+      "diffusion": 1,
+      "vellum": 1,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=1@0.90 v=1@0.78 r=1@0.93",
+      "source": "jev-draft"
+    },
+    "scratch_dirs": {
+      "diffusion": 1,
+      "vellum": 2,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=1@0.78 v=2@0.95 r=1@0.96",
+      "source": "jev-draft"
+    },
+    "cuda_cache_path": {
+      "diffusion": 1,
+      "vellum": 1,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=1@0.92 v=1@0.81 r=1@0.94",
+      "source": "jev-draft"
+    },
+    "game_mode_off": {
+      "diffusion": null,
+      "vellum": null,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.57 v=unsure@0.16 r=unsure@0.32",
+      "source": "jev-draft"
+    },
+    "houdini_temp_dir": {
+      "diffusion": 1,
+      "vellum": 2,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=1@0.70 v=2@0.93 r=1@0.92",
+      "source": "jev-draft"
+    },
+    "houdini_ocl_vendor": {
+      "diffusion": null,
+      "vellum": null,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.42 v=unsure@0.52 r=unsure@0.04",
+      "source": "jev-draft"
+    },
+    "houdini_ocl_devicenumber": {
+      "diffusion": null,
+      "vellum": null,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.42 v=unsure@0.52 r=unsure@0.04",
+      "source": "jev-draft"
+    },
+    "houdini_ocl_devicetype": {
+      "diffusion": null,
+      "vellum": null,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.42 v=unsure@0.52 r=unsure@0.04",
+      "source": "jev-draft"
+    },
+    "houdini_cuda_visible": {
+      "diffusion": null,
+      "vellum": null,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.42 v=unsure@0.52 r=unsure@0.04",
+      "source": "jev-draft"
+    },
+    "ue_ddc_nvme": {
+      "diffusion": null,
+      "vellum": 2,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.55 v=2@0.81 r=1@0.89",
+      "source": "jev-draft"
+    },
+    "houdini_maxthreads": {
+      "diffusion": 0,
+      "vellum": null,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=0@0.60 v=unsure@0.23 r=1@0.64",
+      "source": "jev-draft"
+    },
+    "karma_xpu_blending": {
+      "diffusion": 0,
+      "vellum": 0,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=0@0.94 v=0@0.74 r=unsure@0.28",
+      "source": "jev-draft"
+    },
+    "houdini_ocl_pool": {
+      "diffusion": null,
+      "vellum": 3,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.42 v=3@0.78 r=unsure@0.50",
+      "source": "jev-draft"
+    },
+    "power_plan_ultimate": {
+      "diffusion": null,
+      "vellum": null,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.54 v=unsure@0.12 r=1@0.70",
+      "source": "jev-draft"
+    },
+    "defender_path_0": {
+      "diffusion": 1,
+      "vellum": 2,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=1@0.67 v=2@0.96 r=1@0.92",
+      "source": "jev-draft"
+    },
+    "defender_path_1": {
+      "diffusion": 1,
+      "vellum": 2,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=1@0.67 v=2@0.96 r=1@0.92",
+      "source": "jev-draft"
+    },
+    "defender_path_2": {
+      "diffusion": 1,
+      "vellum": 2,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=1@0.67 v=2@0.96 r=1@0.92",
+      "source": "jev-draft"
+    },
+    "defender_path_3": {
+      "diffusion": 1,
+      "vellum": 2,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=1@0.67 v=2@0.96 r=1@0.92",
+      "source": "jev-draft"
+    },
+    "defender_path_4": {
+      "diffusion": 1,
+      "vellum": 2,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=1@0.67 v=2@0.96 r=1@0.92",
+      "source": "jev-draft"
+    },
+    "defender_procs": {
+      "diffusion": 1,
+      "vellum": 2,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=1@0.67 v=2@0.96 r=1@0.92",
+      "source": "jev-draft"
+    },
+    "core_parking_off": {
+      "diffusion": null,
+      "vellum": null,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.53 v=unsure@0.24 r=1@0.78",
+      "source": "jev-draft"
+    },
+    "hags_on": {
+      "diffusion": null,
+      "vellum": null,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.37 v=unsure@0.00 r=unsure@0.30",
+      "source": "jev-draft"
+    },
+    "pcie_aspm_off": {
+      "diffusion": null,
+      "vellum": null,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.53 v=unsure@0.00 r=unsure@0.53",
+      "source": "jev-draft"
+    },
+    "husk_priority": {
+      "diffusion": 0,
+      "vellum": 2,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=0@0.62 v=2@0.60 r=1@0.63",
+      "source": "jev-draft"
+    },
+    "cpu_max_state_100": {
+      "diffusion": null,
+      "vellum": null,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.51 v=unsure@0.12 r=1@0.68",
+      "source": "jev-draft"
+    },
+    "timer_resolution": {
+      "diffusion": null,
+      "vellum": null,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.58 v=unsure@0.07 r=unsure@0.29",
+      "source": "jev-draft"
+    },
+    "mmcss_responsiveness": {
+      "diffusion": null,
+      "vellum": null,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.34 v=unsure@0.51 r=unsure@0.36",
+      "source": "jev-draft"
+    },
+    "network_throttling_off": {
+      "diffusion": 0,
+      "vellum": null,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=0@0.78 v=unsure@0.50 r=unsure@0.53",
+      "source": "jev-draft"
+    },
+    "fast_startup_off": {
+      "diffusion": null,
+      "vellum": null,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.57 v=unsure@0.42 r=1@0.61",
+      "source": "jev-draft"
+    },
+    "memory_compression_off": {
+      "diffusion": null,
+      "vellum": null,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.59 v=unsure@0.04 r=1@0.82",
+      "source": "jev-draft"
+    },
+    "tdr_delay": {
+      "diffusion": 1,
+      "vellum": 1,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=1@0.84 v=1@0.69 r=1@0.86",
+      "source": "jev-draft"
+    },
+    "tdr_ddi_delay": {
+      "diffusion": 1,
+      "vellum": 1,
+      "render": 1,
+      "rationale": "jev-1.13.0 Score, confidence d=1@0.84 v=1@0.69 r=1@0.86",
+      "source": "jev-draft"
+    },
+    "gpu_msi_mode": {
+      "diffusion": null,
+      "vellum": null,
+      "render": null,
+      "rationale": "jev-1.13.0 Score, confidence d=unsure@0.58 v=unsure@0.03 r=unsure@0.36",
+      "source": "jev-draft"
+    }
+  }
+}

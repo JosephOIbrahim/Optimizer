@@ -1,0 +1,53 @@
+{
+  "timestamp": "20251126_165942",
+  "results": [
+    {
+      "name": "CUDA Memory Pool (cudaMallocAsync)",
+      "status": "applied",
+      "previous_value": "max_split_size_mb:512",
+      "new_value": "backend:cudaMallocAsync,expandable_segments:True"
+    },
+    {
+      "name": "Persistent L2 Cache (72MB)",
+      "status": "applied",
+      "previous_value": "None",
+      "new_value": "72MB"
+    },
+    {
+      "name": "Hardware-Accelerated GPU Scheduling (HAGS)",
+      "status": "applied",
+      "previous_value": "2",
+      "new_value": "None"
+    },
+    {
+      "name": "Windows Large Pages",
+      "status": "error",
+      "previous_value": "Not granted",
+      "new_value": "None"
+    },
+    {
+      "name": "Houdini OpenCL GPU Configuration",
+      "status": "applied",
+      "previous_value": "None",
+      "new_value": "{'HOUDINI_OCL_DEVICENUMBER': '0', 'HOUDINI_OCL_DEVICETYPE': 'GPU', 'HOUDINI_OCL_VENDOR': 'NVIDIA', 'HOUDINI_VDB_FAST_TEMP_FILE': '1'}"
+    },
+    {
+      "name": "Windows Defender Exclusions",
+      "status": "error",
+      "previous_value": "['C:\\\\Users\\\\User\\\\OneDrive\\\\Desktop\\\\Dads_Toolbox_For_Repairs', 'C:\\\\Program Files\\\\Side Effects Software', 'C:\\\\Program Files\\\\Epic Games', 'C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Temp\\\\houdini_temp']",
+      "new_value": "None"
+    },
+    {
+      "name": "Unreal Engine DDC Configuration",
+      "status": "applied",
+      "previous_value": "None",
+      "new_value": "D:\\UE_DDC"
+    },
+    {
+      "name": "cuDNN Autotuning",
+      "status": "applied",
+      "previous_value": "None",
+      "new_value": "{'CUDNN_BENCHMARK': '1', 'TORCH_CUDNN_V8_API_ENABLED': '1'}"
+    }
+  ]
+}

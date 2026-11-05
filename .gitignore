@@ -1,0 +1,25 @@
+# Python bytecode and tool caches
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.benchmarks/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments. This one is not optional: venv/ holds 384 MB of
+# third-party binaries (numpy, scipy, torch, pydantic) that are reinstalled
+# from a requirements file, not authored here. Committing it would bury every
+# source change under 40,000 files of someone else's code.
+venv/
+.venv/
+env/
+
+# Editor and OS noise
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

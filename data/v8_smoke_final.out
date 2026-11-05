@@ -1,0 +1,62 @@
+C:\Users\User\OneDrive\Desktop\Optimizer_V7_G3\core\gpu_optimizer_v8.py:53: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml
+[11:18:41] WARNING  TensorRTBackend disabled (tensorrt   tensorrt_engine.py:135
+                    import failed: No module named                             
+                    'tensorrt'). compile() will raise;                         
+                    applies_to() returns False.                                
+[11:18:42] INFO     SageAttentionV2Backend ready          sage_attention.py:214
+                    (sageattention=unknown).                                   
+           INFO     CutlassFP8GemmBackend disabled:  cutlass_integration.py:547
+                    CUTLASS not installed (run                                 
+                    install_cutlass.bat). Class is                             
+                    still importable.                                          
+           INFO     BackgroundCompiler started       background_compiler.py:306
+                    (idle<5.0% for 30s, poll=5.0s).                            
+           INFO     _GPUIdleProbe initialised on     background_compiler.py:159
+                    device 0                                                   
+           INFO     Initialized 7 experts:              gpu_optimizer_v8.py:539
+                    nvidia_researcher, gpu_specialist,                         
+                    system_integrator,                                         
+                    comfyui_specialist,                                        
+                    houdini_specialist_v8,                                     
+                    ue5_specialist_v8,                                         
+                    cross_app_coordinator                                      
+           INFO     Loaded population of 5 genomes          genetic_tuner.py:85
+           INFO     OptimizerV8 orchestrator            gpu_optimizer_v8.py:231
+                    initialized: 7 experts,                                    
+                    cache=D:\OptimizerV8_EngineCache,                          
+                    bc_started=True                                            
+
+=== OptimizerV8 Cycle ===
+
+[11:18:50] INFO     Analyzing workload: parallel, GPU:  gpu_optimizer_v8.py:771
+                    14%, VRAM: 3.0GB/24.0GB                                    
+           INFO     Updating research patterns from     gpu_optimizer_v6.py:356
+                    NVIDIA sources...                                          
+           INFO     Research patterns updated           gpu_optimizer_v6.py:364
+                    successfully                                               
+[OK] Collected 2 recommendations
+                       Top Optimization Recommendations                       
++----------------------------------------------------------------------------+
+| Expert         | Action         | Target             | Impact | Confidence |
+|----------------+----------------+--------------------+--------+------------|
+| gpu_specialist | registry_tweak | nvidia_power_mode  |  +8.0% |        92% |
+| gpu_specialist | set_env_var    | CUDA_CACHE_MAXSIZE |  +5.0% |        95% |
++----------------------------------------------------------------------------+
+
+Applying top optimizations...
+           INFO     Applying: registry_tweak on         gpu_optimizer_v8.py:849
+                    nvidia_power_mode (confidence:                             
+                    0.92)                                                      
+[X] Failed: nvidia_power_mode (Missing registry parameters)
+           INFO     Applying: set_env_var on            gpu_optimizer_v8.py:849
+                    CUDA_CACHE_MAXSIZE (confidence:                            
+                    0.95)                                                      
+[+] Applied: CUDA_CACHE_MAXSIZE
+
+Cycle complete
+
+           INFO     Shutting down OptimizerV8...       gpu_optimizer_v8.py:1577
+           INFO     BackgroundCompiler stopped.      background_compiler.py:321
+Shutdown complete
+[W506 11:18:50.000000000 AllocatorConfig.cpp:28] Warning: PYTORCH_CUDA_ALLOC_CONF is deprecated, use PYTORCH_ALLOC_CONF instead (function operator ())

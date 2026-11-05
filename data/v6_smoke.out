@@ -1,0 +1,36 @@
+C:\Users\User\OneDrive\Desktop\Optimizer_V7_G3\core\gpu_optimizer_v6.py:50: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml
+[11:16:02] INFO     Initialized 5 experts              gpu_optimizer_v6.py:1042
+           INFO     Loaded population of 5 genomes          genetic_tuner.py:85
+           INFO     OptimizerOrchestrator initialized   gpu_optimizer_v6.py:991
+                    successfully                                               
+
+=== OptimizerV6 Cycle ===
+
+           INFO     Analyzing workload: parallel, GPU: gpu_optimizer_v6.py:1130
+                    8%, VRAM: 3.1GB/24.0GB                                     
+           INFO     Updating research patterns from     gpu_optimizer_v6.py:356
+                    NVIDIA sources...                                          
+           INFO     Research patterns updated           gpu_optimizer_v6.py:364
+                    successfully                                               
+[OK] Collected 2 recommendations
+                       Top Optimization Recommendations                       
++----------------------------------------------------------------------------+
+| Expert         | Action         | Target             | Impact | Confidence |
+|----------------+----------------+--------------------+--------+------------|
+| gpu_specialist | registry_tweak | nvidia_power_mode  |  +8.0% |        92% |
+| gpu_specialist | set_env_var    | CUDA_CACHE_MAXSIZE |  +5.0% |        95% |
++----------------------------------------------------------------------------+
+
+Applying top optimizations...
+           INFO     Applying: registry_tweak on        gpu_optimizer_v6.py:1208
+                    nvidia_power_mode (confidence:                             
+                    0.92)                                                      
+[X] Failed: nvidia_power_mode (Missing registry parameters)
+           INFO     Applying: set_env_var on           gpu_optimizer_v6.py:1208
+                    CUDA_CACHE_MAXSIZE (confidence:                            
+                    0.95)                                                      
+[+] Applied: CUDA_CACHE_MAXSIZE
+
+Cycle complete
+

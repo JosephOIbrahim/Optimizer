@@ -1,0 +1,4 @@
+# MachineOptimizer 2026 runs on the Python standard library alone (uses nvidia-smi,
+# PowerShell, and winreg). 'rich' is the only optional dependency — it makes the plan
+# tables and status readout nicer; without it the tool falls back to plain text.
+rich>=13.7

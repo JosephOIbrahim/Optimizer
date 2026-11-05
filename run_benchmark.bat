@@ -1,0 +1,8 @@
+@echo off
+set PYTORCH_CUDA_ALLOC_CONF=backend:cudaMallocAsync,expandable_segments:True
+set CUDA_DEVICE_MAX_L2_PERSISTING_CACHE_SIZE=75497472
+set CUDNN_BENCHMARK=1
+set TORCH_CUDNN_V8_API_ENABLED=1
+set HOUDINI_OCL_DEVICETYPE=GPU
+set HOUDINI_OCL_DEVICENUMBER=0
+python "%~dp0post_benchmark.py"

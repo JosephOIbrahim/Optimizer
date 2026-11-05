@@ -1,0 +1,21 @@
+# Normalise text in the repository; check out with the platform's ending.
+* text=auto
+
+# cmd.exe parses .bat files line by line, and a batch file with LF-only
+# endings can be misread — particularly around labels and multi-line blocks.
+# Several of the launchers in this repo were LF-only on disk, so this is
+# not hypothetical. Everything else follows the machine's own core.autocrlf,
+# so the working tree keeps its native endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets — never touched by line-ending normalisation.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.pdf binary
+*.exe binary
+*.dll binary
+*.pyd binary
+*.db binary

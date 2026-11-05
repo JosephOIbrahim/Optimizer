@@ -1,0 +1,247 @@
+[
+  {
+    "id": "gen0_mutant_2",
+    "genes": {
+      "r.Streaming.PoolSize": {
+        "name": "r.Streaming.PoolSize",
+        "value": 12288,
+        "min_value": 4096,
+        "max_value": 20000,
+        "options": null,
+        "type": "int"
+      },
+      "r.Lumen.ScreenTraces": {
+        "name": "r.Lumen.ScreenTraces",
+        "value": 1,
+        "min_value": 0,
+        "max_value": 1,
+        "options": null,
+        "type": "int"
+      },
+      "r.Nanite.MaxPixelsPerEdge": {
+        "name": "r.Nanite.MaxPixelsPerEdge",
+        "value": 1.0,
+        "min_value": 0.5,
+        "max_value": 4.0,
+        "options": null,
+        "type": "float"
+      },
+      "HOUDINI_PDG_MAX_CONCURRENT_COOKS": {
+        "name": "HOUDINI_PDG_MAX_CONCURRENT_COOKS",
+        "value": 24,
+        "min_value": 4,
+        "max_value": 48,
+        "options": null,
+        "type": "int"
+      },
+      "HOUDINI_VDB_FAST_TEMP_FILE": {
+        "name": "HOUDINI_VDB_FAST_TEMP_FILE",
+        "value": 1,
+        "min_value": 0,
+        "max_value": 1,
+        "options": null,
+        "type": "int"
+      }
+    },
+    "fitness_score": 104.86835041282848,
+    "generation": 1,
+    "parent_id": "gen0_baseline",
+    "created_at": "2025-12-07T18:27:05.243291"
+  },
+  {
+    "id": "gen2_1765472806",
+    "genes": {
+      "r.Streaming.PoolSize": {
+        "name": "r.Streaming.PoolSize",
+        "value": 12288,
+        "min_value": 4096,
+        "max_value": 20000,
+        "options": null,
+        "type": "int"
+      },
+      "r.Lumen.ScreenTraces": {
+        "name": "r.Lumen.ScreenTraces",
+        "value": 1,
+        "min_value": 0,
+        "max_value": 1,
+        "options": null,
+        "type": "int"
+      },
+      "r.Nanite.MaxPixelsPerEdge": {
+        "name": "r.Nanite.MaxPixelsPerEdge",
+        "value": 0.9,
+        "min_value": 0.5,
+        "max_value": 4.0,
+        "options": null,
+        "type": "float"
+      },
+      "HOUDINI_PDG_MAX_CONCURRENT_COOKS": {
+        "name": "HOUDINI_PDG_MAX_CONCURRENT_COOKS",
+        "value": 26,
+        "min_value": 4,
+        "max_value": 48,
+        "options": null,
+        "type": "int"
+      },
+      "HOUDINI_VDB_FAST_TEMP_FILE": {
+        "name": "HOUDINI_VDB_FAST_TEMP_FILE",
+        "value": 1,
+        "min_value": 0,
+        "max_value": 1,
+        "options": null,
+        "type": "int"
+      }
+    },
+    "fitness_score": 0.0,
+    "generation": 2,
+    "parent_id": "gen0_mutant_2",
+    "created_at": "2025-12-11T12:06:46.876833"
+  },
+  {
+    "id": "gen2_1765472806",
+    "genes": {
+      "r.Streaming.PoolSize": {
+        "name": "r.Streaming.PoolSize",
+        "value": 12288,
+        "min_value": 4096,
+        "max_value": 20000,
+        "options": null,
+        "type": "int"
+      },
+      "r.Lumen.ScreenTraces": {
+        "name": "r.Lumen.ScreenTraces",
+        "value": 1,
+        "min_value": 0,
+        "max_value": 1,
+        "options": null,
+        "type": "int"
+      },
+      "r.Nanite.MaxPixelsPerEdge": {
+        "name": "r.Nanite.MaxPixelsPerEdge",
+        "value": 0.9,
+        "min_value": 0.5,
+        "max_value": 4.0,
+        "options": null,
+        "type": "float"
+      },
+      "HOUDINI_PDG_MAX_CONCURRENT_COOKS": {
+        "name": "HOUDINI_PDG_MAX_CONCURRENT_COOKS",
+        "value": 24,
+        "min_value": 4,
+        "max_value": 48,
+        "options": null,
+        "type": "int"
+      },
+      "HOUDINI_VDB_FAST_TEMP_FILE": {
+        "name": "HOUDINI_VDB_FAST_TEMP_FILE",
+        "value": 1,
+        "min_value": 0,
+        "max_value": 1,
+        "options": null,
+        "type": "int"
+      }
+    },
+    "fitness_score": 0.0,
+    "generation": 2,
+    "parent_id": "gen0_mutant_2",
+    "created_at": "2025-12-11T12:06:46.876863"
+  },
+  {
+    "id": "gen2_1765472806",
+    "genes": {
+      "r.Streaming.PoolSize": {
+        "name": "r.Streaming.PoolSize",
+        "value": 11060,
+        "min_value": 4096,
+        "max_value": 20000,
+        "options": null,
+        "type": "int"
+      },
+      "r.Lumen.ScreenTraces": {
+        "name": "r.Lumen.ScreenTraces",
+        "value": 0,
+        "min_value": 0,
+        "max_value": 1,
+        "options": null,
+        "type": "int"
+      },
+      "r.Nanite.MaxPixelsPerEdge": {
+        "name": "r.Nanite.MaxPixelsPerEdge",
+        "value": 1.0,
+        "min_value": 0.5,
+        "max_value": 4.0,
+        "options": null,
+        "type": "float"
+      },
+      "HOUDINI_PDG_MAX_CONCURRENT_COOKS": {
+        "name": "HOUDINI_PDG_MAX_CONCURRENT_COOKS",
+        "value": 22,
+        "min_value": 4,
+        "max_value": 48,
+        "options": null,
+        "type": "int"
+      },
+      "HOUDINI_VDB_FAST_TEMP_FILE": {
+        "name": "HOUDINI_VDB_FAST_TEMP_FILE",
+        "value": 1,
+        "min_value": 0,
+        "max_value": 1,
+        "options": null,
+        "type": "int"
+      }
+    },
+    "fitness_score": 0.0,
+    "generation": 2,
+    "parent_id": "gen0_mutant_2",
+    "created_at": "2025-12-11T12:06:46.876883"
+  },
+  {
+    "id": "gen4_1765472806",
+    "genes": {
+      "r.Streaming.PoolSize": {
+        "name": "r.Streaming.PoolSize",
+        "value": 12288,
+        "min_value": 4096,
+        "max_value": 20000,
+        "options": null,
+        "type": "int"
+      },
+      "r.Lumen.ScreenTraces": {
+        "name": "r.Lumen.ScreenTraces",
+        "value": 0,
+        "min_value": 0,
+        "max_value": 1,
+        "options": null,
+        "type": "int"
+      },
+      "r.Nanite.MaxPixelsPerEdge": {
+        "name": "r.Nanite.MaxPixelsPerEdge",
+        "value": 1.0,
+        "min_value": 0.5,
+        "max_value": 4.0,
+        "options": null,
+        "type": "float"
+      },
+      "HOUDINI_PDG_MAX_CONCURRENT_COOKS": {
+        "name": "HOUDINI_PDG_MAX_CONCURRENT_COOKS",
+        "value": 26,
+        "min_value": 4,
+        "max_value": 48,
+        "options": null,
+        "type": "int"
+      },
+      "HOUDINI_VDB_FAST_TEMP_FILE": {
+        "name": "HOUDINI_VDB_FAST_TEMP_FILE",
+        "value": 0,
+        "min_value": 0,
+        "max_value": 1,
+        "options": null,
+        "type": "int"
+      }
+    },
+    "fitness_score": 0.0,
+    "generation": 4,
+    "parent_id": "gen3_1765407522",
+    "created_at": "2025-12-11T12:06:46.876899"
+  }
+]

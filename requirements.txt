@@ -1,0 +1,156 @@
+# OptimizerV6 Requirements
+# Python 3.13.7+ compatible
+# CUDA 12.6+ required for GPU features
+
+# ============================================================================
+# CORE DEPENDENCIES
+# ============================================================================
+
+# GPU Monitoring & Management
+nvidia-ml-py  # pynvml - NVIDIA Management Library
+# pycuda==2024.1.2  # CUDA Python bindings (if needed for custom kernels)
+
+# System Monitoring
+psutil==6.1.1  # Process and system utilities
+py-cpuinfo==9.0.0  # CPU information
+
+# Configuration & Data
+pyyaml==6.0.2  # YAML configuration parsing
+python-dotenv==1.0.1  # Environment variable management
+
+# ============================================================================
+# WEB DASHBOARD & API
+# ============================================================================
+
+# FastAPI Backend
+fastapi==0.115.6  # Web framework
+uvicorn[standard]==0.34.0  # ASGI server
+websockets==14.1  # WebSocket support
+python-multipart==0.0.20  # Form data parsing
+aiofiles==24.1.0  # Async file operations
+
+# HTTP Client
+requests==2.32.3  # HTTP library for API calls
+httpx==0.28.1  # Async HTTP client
+
+# ============================================================================
+# DATA PROCESSING & ANALYSIS
+# ============================================================================
+
+# Database
+# sqlite3 is built-in to Python - no install needed
+
+# Data Analysis & Statistics
+pandas==2.2.3  # Data manipulation
+numpy==2.2.1  # Numerical computing (user already has via PyTorch)
+scipy==1.15.1  # Statistical functions (Welch's t-test)
+
+# ============================================================================
+# MACHINE LEARNING & ACCELERATION
+# ============================================================================
+
+# PyTorch (user already has 2.8.0+cu126 installed globally)
+# torch==2.8.0+cu126  # Commented - already installed
+
+# cuQuantum for Tensor Network Acceleration
+# cuquantum-python-cu12  # NVIDIA cuQuantum Python bindings (includes cuTensor + CUTLASS backend)
+# cupy-cuda12x  # CuPy for GPU arrays (used by cuQuantum)
+
+# ============================================================================
+# NVIDIA RESEARCH INTEGRATION
+# ============================================================================
+
+# GitHub API Client
+PyGithub==2.5.0  # GitHub API for research pattern extraction
+
+# Web Scraping (for NVIDIA blog)
+beautifulsoup4==4.12.3  # HTML parsing
+lxml==5.3.0  # XML/HTML parser
+
+# ============================================================================
+# MCP INTEGRATION
+# ============================================================================
+
+# MCP SDK (Model Context Protocol)
+# Note: Install via: pip install mcp
+mcp  # MCP client library
+
+# ============================================================================
+# LOGGING & UTILITIES
+# ============================================================================
+
+# Rich Console
+rich==13.9.4  # Rich terminal formatting (for progress bars, tables)
+
+# Async Utilities
+asyncio-throttle==1.0.2  # Rate limiting for async operations
+
+# Date/Time
+python-dateutil==2.9.0.post0  # Date parsing and manipulation
+
+# ============================================================================
+# WINDOWS-SPECIFIC
+# ============================================================================
+
+# Windows Management Instrumentation
+wmi==1.5.1; sys_platform == 'win32'  # Windows system information
+pywin32==308; sys_platform == 'win32'  # Windows API access
+
+# ============================================================================
+# DEVELOPMENT & TESTING (Optional)
+# ============================================================================
+
+# Testing Framework
+pytest==8.3.4  # Testing framework
+pytest-asyncio==0.24.0  # Async test support
+
+# Code Quality
+black==24.10.0  # Code formatter
+flake8==7.1.1  # Linter
+mypy==1.14.0  # Type checking
+
+# ============================================================================
+# BENCHMARKING
+# ============================================================================
+
+# Performance Profiling
+memory-profiler==0.61.0  # Memory usage profiling
+line-profiler==4.2.0  # Line-by-line profiling
+
+# ============================================================================
+# FILE WATCHING (for Houdini hip file monitoring)
+# ============================================================================
+
+watchdog==6.0.0  # File system event monitoring
+
+# ============================================================================
+# INSTALLATION NOTES
+# ============================================================================
+
+# Install all dependencies:
+#   pip install -r requirements.txt
+
+# For cuQuantum (requires CUDA 12.x):
+#   Ensure CUDA 12.6+ is installed
+#   Verify: nvcc --version
+
+# For PyTorch (already installed globally for user):
+#   torch 2.8.0+cu126 detected
+
+# For MCP servers:
+#   Ensure houdini-context and memory MCP servers are running
+
+# Windows-specific post-install:
+#   python -m pip install --upgrade pywin32
+#   python Scripts/pywin32_postinstall.py -install
+
+# ============================================================================
+# MINIMUM REQUIREMENTS
+# ============================================================================
+
+# Python: 3.10+
+# CUDA: 12.6+
+# NVIDIA Driver: 581.80+ (or latest Game Ready / Studio Driver)
+# GPU: RTX 4090 (Compute Capability 8.9)
+# RAM: 16GB+ (128GB available)
+# OS: Windows 11 Pro

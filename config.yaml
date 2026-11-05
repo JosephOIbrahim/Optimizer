@@ -1,0 +1,653 @@
+# Optimizer v7_gemini3 Configuration
+# RTX 4090 + Threadripper PRO 7965WX + 128GB RAM
+# Research-grade GPU optimization for Houdini 21 + UE5.6
+
+# ============================================================================
+# HARDWARE PROFILE
+# ============================================================================
+hardware:
+  gpu:
+    model: "NVIDIA GeForce RTX 4090"
+    compute_capability: "8.9"  # Ada Lovelace sm_89
+    vram_total_gb: 24
+    vram_safe_threshold_gb: 22.5  # 94% utilization (1.5GB system overhead)
+    cuda_cores: 16384
+    tensor_cores_generation: 4  # 4th gen (FP8, INT8, FP16, TF32, BF16)
+    # Clocks (MHz). The old key `base_clock_mhz: 2520` was the RATED BOOST, not
+    # the base clock. Grepped every reader across Optimizer/ (v9, core, MOS2026,
+    # dashboard) on 2026-10-01: nothing reads any of these keys, so the value was
+    # split into honest names rather than kept under a wrong one.
+    base_clock_mhz: 2235
+    boost_clock_mhz: 2520          # rated boost
+    driver_max_clock_mhz: 3105     # driver-reported max graphics clock
+    memory_bandwidth_gbps: 1008  # 1.01 TB/s
+    pcie_gen: 4
+    pcie_lanes: 16
+    resizable_bar: true
+
+  cpu:
+    model: "AMD Ryzen Threadripper PRO 7965WX"
+    cores: 24
+    threads: 48
+    architecture: "Zen 4"
+    base_clock_ghz: 4.2
+    numa_nodes: 1 # Typically 1 for this SKU, but good to be explicit if we were doing affinity
+    
+    # Threadripper PRO 7965WX: 24 IDENTICAL Zen 4 cores / 48 logical processors
+    # across 4 CCDs. There are NO performance/efficiency cores on this CPU — the
+    # old "P-cores 0-20 / E-cores 21-23" split modelled a hybrid Intel part and,
+    # applied, would have confined Houdini/UE to 21 of 48 LPs. Pinning is OFF:
+    # on a homogeneous part a fixed mask only takes cores away. No reader of this
+    # block exists today (grepped 2026-10-01); it is kept so the fact is on record.
+    affinity:
+      performance_cores: []
+      background_cores: []
+      enable_pinning: false
+
+  system:
+    ram_gb: 128
+    os: "Windows 11 Pro for Workstations"
+    directx: "12"
+
+  # DATED SNAPSHOT (2026-10-01). The live value comes from `python -m v12 truth`
+  # (OptimizerV12); a driver updates itself, so never branch on this literal.
+  driver:
+    version: "616.92"
+    type: "Studio Driver"
+    cuda_driver_api: "13.4"   # CUDA version the driver exposes (UMD), not a toolkit
+
+# ============================================================================
+# VRAM ALLOCATION STRATEGIES
+# ============================================================================
+vram_allocation:
+  # Budgets are COOPERATIVE, not enforced. This box has no cross-process GPU
+  # partitioning: MIG is datacenter-only, MPS is Linux/QNX-only, and TCC is
+  # unreachable on GeForce. Each app is asked (via its own env var / ini) to
+  # stay under its number; nothing stops it. 24564 MiB dedicated, of which the
+  # Apple Pro Display XDR 6K compositor (DWM) holds ~1-2 GB before any app
+  # starts, so app budgets must sum under ~22 GB — the old 11+11+2+2 = 26 GB
+  # parallel split could never fit.
+
+  # Sequential workflow (Houdini → UE5) - Primary mode
+  sequential:
+    active_app_gb: 18
+    reserve_buffer_gb: 2
+    system_overhead_gb: 2   # XDR compositor + CUDA contexts
+
+  # Parallel workflow (Both apps running) - Occasional mode
+  parallel:
+    houdini_gb: 9
+    ue5_gb: 9
+    comfyui_gb: 2           # apps total 20 GB
+    system_overhead_gb: 2   # XDR compositor + CUDA contexts -> 22 GB
+
+  # VRAM "fencing" is advisory only, and unimplemented: no Python code reads
+  # these keys (v9/config.py holds defaults with no reader; core/
+  # gpu_optimizer_v6.py:1376 is a TODO). Nothing warns, re-budgets or enforces,
+  # and nothing could cap a running process on this hardware.
+  fencing:
+    soft_limit_percent: 90  # Warning threshold
+    hard_limit_percent: 95  # Advisory threshold; nothing enforces it
+    monitoring_interval_ms: 100
+    enforcement_action: "env_var_adjustment"  # Unused (no reader). Options: env_var_adjustment, process_restart, warning_only
+
+  # Per-application environment variables
+  app_env_vars:
+    houdini:
+      HOUDINI_OCL_MEMSIZE_MB: 9216  # 9GB for parallel mode (matches houdini_gb)
+      HOUDINI_OCL_MEMSIZE_MB_SEQUENTIAL: 18432  # 18GB for sequential mode
+      HOUDINI_GPU_DEVICE_NUM: 0
+
+    ue5:
+      # Set via Engine.ini: r.Streaming.PoolSize
+      streaming_pool_mb_parallel: 6144  # 6GB; the pool is a subset of UE's 9GB budget
+      streaming_pool_mb_sequential: 18432  # 18GB
+
+    comfyui:
+      PYTORCH_CUDA_ALLOC_CONF: "max_split_size_mb:512,garbage_collection_threshold:0.9"
+      FORCE_MEM_EFFICIENT_ATTN: "1"
+      CUDA_MODULE_LOADING: "LAZY"
+
+# ============================================================================
+# EXPERT THRESHOLDS & CONFIDENCE SCORES
+# ============================================================================
+experts:
+  # Expert 1: NVIDIA GPU Researcher
+  nvidia_researcher:
+    enabled: true
+    update_interval_hours: 168  # Weekly GitHub/blog scraping
+    min_confidence: 0.70
+    repositories:
+      - "nvidia/cutlass"
+      - "nvidia/TensorRT-LLM"
+      - "nvidia/cuQuantum"
+      - "nvidia/NeMo"
+    sources:
+      - "https://developer.nvidia.com/blog"
+      - "https://github.com/nvidia"
+    knowledge_base: "data/nvidia_research.db"
+
+  # Expert 2: NVIDIA GPU Optimization Specialist
+  gpu_specialist:
+    enabled: true
+    min_confidence: 0.85
+    cuda_env_vars:
+      CUDA_CACHE_MAXSIZE: "4294967296"  # 4GB
+      CUDA_CACHE_DISABLE: "0"
+      CUDA_FORCE_PTX_JIT: "0"
+      CUBLAS_WORKSPACE_CONFIG: ":4096:8"  # Deterministic if needed
+      CUDNN_LOGINFO_DBG: "0"
+      CUDNN_LOGDEST_DBG: "stderr"
+    driver_settings:
+      power_mode: "prefer_maximum_performance"
+      cuda_sysmem_fallback: "1"
+
+  # Expert 3: Epic UE5.6 Engineer
+  ue5_engineer:
+    enabled: true
+    min_confidence: 0.80
+    console_variables:
+      # Lumen GI optimizations (RTX 4090 high-end settings)
+      r.Lumen.Reflections.ScreenTraces: "4"
+      r.Lumen.RadiosityProbeSpacing: "4.0"
+      r.Lumen.TranslucencyReflections.FrontLayer.EnableForProject: "1"
+      r.Lumen.HardwareRayTracing: "1"
+      r.Lumen.HardwareRayTracing.LightingMode: "2"  # Hit lighting
+
+      # Nanite streaming (24GB VRAM = aggressive caching)
+      r.Nanite.MaxPixelsPerEdge: "1.0"
+      r.Nanite.Streaming.NumInitialRootPages: "512"
+
+      # Virtual Shadow Maps (high quality for RTX 4090)
+      r.Shadow.Virtual.Cache.StaticSeparate: "1"
+      r.Shadow.Virtual.ResolutionLodBiasDirectional: "0.0"
+      r.Shadow.Virtual.MaxPhysicalPages: "4096"
+
+      # Path Tracer
+      r.PathTracing.SamplesPerPixel: "256"
+      r.PathTracing.MaxBounces: "32"
+      r.PathTracing.Denoiser: "1"
+
+    engine_ini_path: "C:/Users/User/AppData/Local/UnrealEngine/Engine/Config/UserEngine.ini"
+
+  # Expert 4: SideFX Houdini 21 Engineer
+  houdini_engineer:
+    enabled: true
+    min_confidence: 0.80
+    mcp_integration: true
+    env_vars:
+      HOUDINI_OCL_DEVICENUMBER: "0"
+      HOUDINI_VDB_FAST_TEMP_FILE: "1"
+      HOUDINI_DSO_ERROR: "2"  # Verbose errors
+
+    karma_xpu:
+      # OptiX optimizations for RTX 4090
+      samples_per_pixel_min: 256
+      samples_per_pixel_max: 2048
+      enable_denoiser: true
+      max_ray_depth: 8
+      russian_roulette_depth: 3
+
+    pdg_tops:
+      max_concurrent_cooks: 24  # Match Threadripper core count
+      gpu_scheduling: true
+
+  # Expert 5: System Integration Specialist
+  system_integrator:
+    enabled: true
+    min_confidence: 0.90
+
+    pcie_validation:
+      check_gen4: true
+      check_x16_lanes: true
+      check_resizable_bar: true
+
+    process_priority:
+      houdini: "ABOVE_NORMAL"
+      unrealEditor: "ABOVE_NORMAL"
+      comfyui: "NORMAL"
+
+    thermal_monitoring:
+      gpu_temp_warning_c: 83
+      gpu_temp_critical_c: 90
+      fan_curve_suggestion: true
+
+    windows_gpu_scheduler:
+      enabled: true
+      registry_key: "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers"
+      value_name: "HwSchMode"
+      value_data: 2  # Hardware-accelerated GPU scheduling
+
+# ============================================================================
+# BASELINE PERFORMANCE TARGETS
+# ============================================================================
+baselines:
+  houdini:
+    viewport_fps:
+      target: 60.0
+      geometry_points: 10000000  # 10M points test scene
+
+    karma_xpu_render:
+      target_seconds_per_frame: 45.0
+      resolution: "1920x1080"
+      samples: 256
+      geometry_count: 100000000  # 100M polygon test scene
+
+    pdg_tops_cook:
+      target_seconds: 120.0
+      work_items: 100
+      compute_intensity: "high"
+
+    vellum_solve:
+      target_seconds_per_frame: 2.5
+      points: 500000
+      constraints: 1000000
+      substeps: 5
+
+    pyro_simulation:
+      target_seconds_per_step: 3.0
+      grid_resolution: [256, 256, 256]
+      substeps: 3
+
+  ue5:
+    editor_fps:
+      target: 120.0
+      scene_complexity: "high"
+
+    lumen_gi_build:
+      target_seconds: 180.0
+      dynamic_lights: 50
+      movable_meshes: 100
+
+    nanite_streaming:
+      target_fps: 120.0
+      target_hitch_count: 0
+      total_triangles: 1000000000  # 1B triangles
+
+    vsm_updates:
+      target_frame_time_ms: 8.3  # 120fps
+      dynamic_shadows: 10
+
+    path_trace_convergence:
+      target_seconds_to_95_percent: 300.0
+      samples_per_pixel: 256
+
+# ============================================================================
+# TENSORRT-LLM DECISION ENGINE
+# ============================================================================
+tensorrt_llm:
+  # Phase 2: Use vfx-deterministic-llm API
+  phase2:
+    api_url: "http://localhost:8000/api/optimize"
+    timeout_seconds: 5
+    fallback_to_rules: true
+
+  # Phase 3: Specialized fine-tuned model (future)
+  phase3:
+    model_path: "models/optimizer_specialist_1b.engine"
+    quantization: "int8"
+    max_sequence_length: 2048
+    training_data: "data/decision_logs.db"
+
+  decision_routing:
+    fast_decisions:  # Rule-based (<10ms latency)
+      - "vram_allocation"
+      - "process_priority"
+      - "thermal_throttling"
+
+    ai_decisions:  # TensorRT-LLM (5-10ms latency)
+      - "cutensor_acceleration"
+      - "precision_selection"
+      - "workload_routing"
+
+    complex_decisions:  # vfx-deterministic-llm API (100ms latency)
+      - "novel_optimization_strategy"
+      - "multi_app_coordination"
+      - "regression_root_cause_analysis"
+
+# ============================================================================
+# CUTENSOR + CUTLASS ACCELERATION
+# ============================================================================
+acceleration:
+  cutensor:
+    enabled: true
+    library: "cuquantum-python-cu12"
+    precision_modes: ["fp32", "fp16", "fp8"]
+    default_precision: "fp16"  # Balance speed vs accuracy
+
+    # Houdini integration
+    houdini_python_sop:
+      enabled: true
+      auto_load: false  # User must manually add Python SOP
+      acceleration_threshold:
+        min_points: 1000000  # Only accelerate for 1M+ points
+        min_constraints: 5000000  # Or 5M+ constraints
+
+    # Operations to accelerate
+    operations:
+      vellum_constraint_projection:
+        enabled: true
+        method: "tensor_network_contraction"
+        expected_speedup: 1.4
+
+      pyro_advection:
+        enabled: true
+        method: "einsum_optimization"
+        expected_speedup: 1.3
+
+  cutlass:
+    enabled: true
+    version: "4.x"  # V8 / Amendment 1: CUTLASS 4.x DSL (Phase C may exercise)
+    install_path: "${CUTLASS_PATH}"  # Set by install_cutlass.bat
+    include_path: "${CUTLASS_INCLUDE_DIR}"
+    backend_for: "cutensor"  # CUTLASS powers cuTensor internally
+    compile_custom_kernels: true  # Now enabled with CUTLASS installation
+
+    # SM89 (RTX 4090 Ada Lovelace) specific optimizations
+    target_arch: 89
+    compute_capability: "8.9"
+
+    optimizations:
+      tensor_core_utilization: true
+      async_copy: true
+      thread_block_clusters: false  # NOT on Ada: needs sm_90+ (Hopper); hard-blocked on sm_89
+      fp8_matmul: true              # FP8 tensor core ops
+      bf16_accumulate: true         # BF16 with FP32 accumulation
+      tf32_mode: true               # TF32 for implicit tensor cores
+
+    # Optimal tile configuration for SM89
+    tile_config:
+      gemm_tile_m: 128
+      gemm_tile_n: 128
+      gemm_tile_k: 32
+      warp_tile_m: 64
+      warp_tile_n: 64
+      warp_tile_k: 32
+
+    # Memory hierarchy optimization
+    memory_config:
+      shared_memory_carveout_percent: 75  # 75KB of 100KB for shared
+      l2_residency_hint: true
+      persistent_l2_cache: true
+
+    # Build configuration
+    build:
+      parallel_jobs: 24  # Threadripper 24 cores
+      optimization_level: 3
+      use_fast_math: true
+      nvcc_extra_flags: ["-Xcompiler", "/MP24"]
+
+# ============================================================================
+# MONITORING & TELEMETRY
+# ============================================================================
+monitoring:
+  telemetry:
+    sampling_interval_ms: 100
+    ring_buffer_duration_seconds: 3600  # 1 hour in memory
+    archive_to_db: true
+    db_path: "data/telemetry.db"
+
+  metrics:
+    gpu:
+      - utilization_percent
+      - vram_used_gb
+      - vram_free_gb
+      - temperature_c
+      - power_draw_w
+      - clock_speed_mhz
+      - pcie_throughput_gbps
+
+    per_process:
+      - process_name
+      - pid
+      - vram_allocated_gb
+      - gpu_utilization_percent
+
+  dashboard:
+    enabled: true
+    host: "localhost"
+    port: 8090
+    websocket_endpoint: "/ws/telemetry"
+    update_interval_ms: 100
+    frontend_path: "dashboard/frontend/build"
+
+  alerts:
+    vram_warning_threshold_percent: 90
+    vram_critical_threshold_percent: 95
+    temp_warning_c: 83
+    temp_critical_c: 90
+    power_limit_w: 450  # RTX 4090 TDP
+
+# ============================================================================
+# REGRESSION DETECTION
+# ============================================================================
+regression_detection:
+  enabled: true
+  test_frequency: "weekly"  # Run every Sunday
+  test_schedule_cron: "0 2 * * 0"  # 2 AM Sunday
+
+  statistical_test:
+    method: "welch_t_test"
+    significance_level: 0.05
+    effect_size_threshold_percent: 10  # Flag if >10% regression
+    sample_size_recent: 10
+    sample_size_baseline: 10
+
+  benchmarks:
+    houdini:
+      - "karma_xpu_render"
+      - "pdg_tops_cook"
+      - "vellum_solve"
+      - "pyro_simulation"
+
+    ue5:
+      - "lumen_gi_build"
+      - "nanite_streaming"
+      - "vsm_updates"
+      - "path_trace_convergence"
+
+  storage:
+    db_path: "data/benchmarks.db"
+    schema_version: 1
+
+  rollback:
+    automatic: true
+    backup_config: true
+    backup_path: "data/config_backups/"
+
+# ============================================================================
+# HIGH-IMPACT OPTIMIZATIONS
+# ============================================================================
+high_impact:
+  enabled: true
+  auto_apply_on_startup: false  # Set true to auto-apply on nightly evolution
+  backup_before_apply: true
+  backup_path: "data/optimization_backups/"
+
+  # Individual optimization toggles
+  optimizations:
+    cuda_memory_pool:
+      enabled: true
+      impact: "15-40% allocation speedup"
+      env_var: "PYTORCH_CUDA_ALLOC_CONF"
+      value: "backend:cudaMallocAsync,expandable_segments:True"
+
+    persistent_l2_cache:
+      enabled: true
+      impact: "10-30% memory-bound speedup"
+      size_mb: 72  # RTX 4090 L2 cache size
+
+    hags:
+      enabled: true
+      impact: "5-10% latency reduction"
+      requires_admin: true
+      requires_reboot: true
+
+    large_pages:
+      enabled: true
+      impact: "5-15% large dataset speedup"
+      requires_admin: true
+
+    houdini_opencl:
+      enabled: true
+      impact: "Ensures GPU usage"
+      env_vars:
+        HOUDINI_OCL_DEVICENUMBER: "0"
+        HOUDINI_OCL_DEVICETYPE: "GPU"
+        HOUDINI_OCL_VENDOR: "NVIDIA"
+        HOUDINI_VDB_FAST_TEMP_FILE: "1"
+
+    defender_exclusions:
+      enabled: true
+      impact: "10-30% I/O speedup"
+      requires_admin: true
+      paths:
+        - "C:\\Users\\User\\OneDrive\\Desktop\\Dads_Toolbox_For_Repairs"
+        - "C:\\Program Files\\Side Effects Software"
+        - "C:\\Program Files\\Epic Games"
+
+    ue5_ddc:
+      enabled: true
+      impact: "20-50% shader compile speedup"
+      ddc_path: "D:\\UE_DDC"  # Fast NVMe location
+      fallback_path: "C:\\UE_DDC"
+
+    cudnn_autotune:
+      enabled: true
+      impact: "5-15% convolution speedup"
+      env_vars:
+        CUDNN_BENCHMARK: "1"
+        TORCH_CUDNN_V8_API_ENABLED: "1"
+
+  # Estimated combined impact
+  combined_impact:
+    conservative: "20%"
+    optimistic: "40%"
+    typical: "30%"
+
+# ============================================================================
+# MCP INTEGRATION
+# ============================================================================
+mcp:
+  houdini_context:
+    enabled: true
+    server_url: "mcp://houdini-context"
+    tools:
+      - "search_hdk_docs"
+      - "lookup_vex_function"
+      - "remember_hdk_pattern"
+      - "recall_similar_patterns"
+
+    pattern_storage:
+      store_successful_optimizations: true
+      min_impact_threshold_percent: 15  # Only store if >15% improvement
+
+  memory_graph:
+    enabled: true
+    server_url: "mcp://memory"
+    use_for_decision_history: true
+
+# ============================================================================
+# LOGGING & DEBUGGING
+# ============================================================================
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: "data/optimizer.log"
+  max_size_mb: 100
+  backup_count: 5
+
+  log_decisions: true
+  decision_log: "data/decision_logs.db"
+
+  verbose_experts: false  # Set true for expert reasoning visibility
+
+# ============================================================================
+# NVIDIA RESEARCH PATTERNS (Auto-updated)
+# ============================================================================
+nvidia_research:
+  last_updated: null  # Auto-populated on first run
+  patterns: []  # Auto-populated from GitHub/blog scraping
+
+# ============================================================================
+# SYSTEM STATE (Runtime - do not edit manually)
+# ============================================================================
+state:
+  current_mode: null  # sequential, parallel, idle
+  active_apps: []
+  last_optimization_timestamp: null
+  optimizations_applied: 0
+  successful_optimizations: 0
+  failed_optimizations: 0
+  avg_confidence_score: 0.0
+
+# ============================================================================
+# V8 ADDITIONS (Forge-3) -- consumed only by core/gpu_optimizer_v8.py
+# ============================================================================
+
+# ComfyUI (V8 specialist + state collector).
+comfyui:
+  enabled: true
+  api_host: "127.0.0.1"
+  api_port: 8188
+  install_dir: "C:/Users/User/ComfyUI"
+  watch_models_dir: "C:/Users/User/ComfyUI/models"
+  websocket_subscribe: true
+  # Durable workload telemetry; consumed by ComfyUIStateCollector (Path B
+  # restore + per-event persist) and by BackgroundCompiler (compile-cost
+  # rows). Keep these two pointed at the same file.
+  telemetry_db_path: "data/comfyui_telemetry.db"
+  expert:
+    enabled: true
+    min_confidence: 0.80
+    speculative_compile:
+      min_usage_count: 3
+      lookback_days: 14
+      only_when_gpu_idle_pct: 5
+      idle_dwell_seconds: 30
+      max_concurrent_compiles: 1
+
+# Houdini (V8 specialist; supersedes V7 houdini_engineer in V8 orchestrator).
+houdini_v8:
+  enabled: true
+  expert:
+    enabled: true
+    min_confidence: 0.80
+
+# UE5 (V8 specialist; supersedes V7 ue5_engineer in V8 orchestrator).
+ue5_v8:
+  enabled: true
+  expert:
+    enabled: true
+    min_confidence: 0.80
+
+# Cross-app coordinator.
+cross_app_coordinator:
+  enabled: true
+  min_confidence: 0.85
+  idle_window_seconds: 60.0
+  # Cooperative budgets (GB), see vram_allocation: sum under ~22 GB because the
+  # XDR compositor holds ~1-2 GB of the 24 GB and nothing partitions the GPU.
+  vram_split:
+    one_app_active: { primary: 18 }
+    two_apps_active: { comfyui: 10, houdini: 10, ue5: 10 }   # take any 2 -> 20 GB
+    three_apps_active: { comfyui: 3, houdini: 9, ue5: 8 }    # 20 GB + ~2 GB compositor/system
+
+# TensorRT engine cache + background compiler.
+tensorrt:
+  enabled: true
+  version_pin: "11.x"
+  version: "11.x"
+  precision_priority: ["fp16"]   # fp8 added in Phase B
+  cache_dir: "D:/OptimizerV8_EngineCache"
+  cache_size_gb: 200
+  invalidate_on_driver_change: true
+
+# V8 disables the V7 specialists that are now superseded by V8 specialists.
+# (Note: this overrides the V7 `experts:` block earlier in this file via
+# the V8 orchestrator's `enabled: false` defaults; V7 still re-runs them
+# when launched via core/gpu_optimizer_v6.py because V7 defaults to True.)
+experts_v8_overrides:
+  ue5_engineer:
+    enabled: false        # superseded by ue5_v8 in V8 orchestrator
+  houdini_engineer:
+    enabled: false        # superseded by houdini_v8 in V8 orchestrator
