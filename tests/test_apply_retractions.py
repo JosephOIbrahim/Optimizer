@@ -91,15 +91,56 @@ class TestMovingAPointer(unittest.TestCase):
         self.assertIn("+16.91", r["retracted"]["original_verdict"])
 
     def test_the_displaced_measurement_goes_into_the_history(self):
+        """Whatever the pointer WAS before the run must still be readable
+        after it.
+
+        The displaced measurement is named by the state of the chain, not
+        written into this test: the chain advances every time a lever is
+        re-measured, so hard-coding a filename here would pin the test to
+        one point in the chain's history and fail the next time it moves —
+        which is what happened when the 2026-11-06 measurements landed.
+
+        What must not change is the property, and it is the property that
+        matters: the measurement the pointer used to name is still in the
+        file, marked with why it stopped being current.
+        """
+        before = json.loads((self.store / "levers_20261103_221724.json")
+                            .read_text(encoding="utf-8"))
+        r = [x for x in before["results"] if x["label"] == "aov_beauty_only"][0]
+        displaced = r["retracted"].get("replacement_measurement", "")
+        self.assertTrue(displaced, "the record must already point at something")
+
         self._run()
+
         doc = json.loads((self.store / "levers_20261103_221724.json")
                          .read_text(encoding="utf-8"))
         r = [x for x in doc["results"] if x["label"] == "aov_beauty_only"][0]
         hist = r["retracted"].get("replacement_history", [])
         self.assertTrue(hist, "the measurement it displaced must stay visible")
-        self.assertTrue(hist[-1]["measurement"].endswith("optimize_20261104_231946.json"))
+        self.assertTrue(hist[-1]["measurement"].endswith(displaced),
+                        "the measurement the pointer named before the run must "
+                        "be the one that went into the history")
         self.assertIn("re-measured with the current harness",
                       hist[-1]["superseded_because"])
+
+    def test_the_earlier_history_is_not_disturbed(self):
+        """Moving the pointer appends; it does not rewrite what was there."""
+        before = json.loads((self.store / "levers_20261103_221724.json")
+                            .read_text(encoding="utf-8"))
+        r = [x for x in before["results"] if x["label"] == "aov_beauty_only"][0]
+        earlier = [h["measurement"] for h in
+                   r["retracted"].get("replacement_history", [])]
+
+        self._run()
+
+        doc = json.loads((self.store / "levers_20261103_221724.json")
+                         .read_text(encoding="utf-8"))
+        r = [x for x in doc["results"] if x["label"] == "aov_beauty_only"][0]
+        now = [h["measurement"] for h in
+               r["retracted"].get("replacement_history", [])]
+        self.assertEqual(now[:len(earlier)], earlier,
+                         "the chain's earlier entries must survive the move "
+                         "unchanged and in order")
 
     def test_the_original_reason_is_not_overwritten(self):
         """The original reason was true when it was written. A reader who
