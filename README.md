@@ -108,7 +108,7 @@ the candidate was faster:
 ```
 effect = (mean(baseline) - mean(candidate)) / mean(baseline)
        = (47.812 - 42.626) / 47.812
-       = 0.10846649376725509   (and a claimed +31.4%)
+       = 0.10846649376725509
        = +10.85%
 ```
 
