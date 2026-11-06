@@ -61,10 +61,10 @@ The commit says what the campaign *found*, not that a sync happened:
 Measure the karma-xpu workload (render)
 
 campaign
-  aov_variant  +9.79%  p=3.72e-05  n=5  drift -1.82%  spread 2.70%  (beauty_only)
+  aov_variant  +10.85%  p=1.13e-04  n=5  drift -0.34%  spread 2.00%  (beauty_only)
 
 New records (1):
-  optimize_20261105_065602.json
+  optimize_20261106_071113.json
 ```
 
 Only `measurements/` is committed, so any source edit you have in flight is
@@ -78,7 +78,7 @@ Sync-Measurements.bat --check    report what would change, change nothing
 
 ---
 
-## The numbers it produced on this box (2026-11-04)
+## The numbers it produced on this box (2026-11-04 to 11-06)
 
 ```
 RTX 4090  24 GiB  128 SM  driver 621.14
@@ -94,8 +94,8 @@ cannot be compared with one measured on this one.)
 |---|---|---|---|
 | compute | power ceiling 450→600 W | **ADMIT +10.57%**, p=4.4e-06 | card was pinned at 450 W (454 W drawn) |
 | shot (3 frames) | frames per process 1→3 | **ADMIT +46.95%**, p=2.4e-06 | ~39 s setup tax paid once, not three times |
-| render | AOV variant (beauty only) | **ADMIT +9.79%**, p=3.7e-05 | shades fewer pixels, same beauty image |
-| render | AOV variant (no crypto) | **DENY +0.77%** | dropping cryptomatte alone is worth nothing |
+| render | AOV variant (beauty only) | **ADMIT +10.85%**, p=1.1e-04 | shades fewer pixels, same beauty image |
+| render | AOV variant (no crypto) | **DENY -0.09%** | dropping cryptomatte alone is worth nothing |
 | render | power ceiling | *not measured* — the card draws 104 W of a 450 W budget, 0% at the cap, so there is no headroom to unlock | throttle telemetry, not a lever verdict: no render+power_ceiling run exists |
 
 Every verdict in this table was measured with both arms alternately in one
@@ -162,7 +162,7 @@ time-sliced against each other and any number taken then describes both.
 On 2026-11-03 this repo gated a thread-count sweep against a baseline
 measured 48 minutes earlier, under different resident processes. It came back
 ADMIT +12.34%, p=1.9e-05. Re-timed the same way, the same comparison was
-**DENY -0.60%** — nothing. The tool now measures both arms alternately and gates
+**DENY -0.65%** — nothing. The tool now measures both arms alternately and gates
 with a paired t-test, and prints the baseline's drift across the run — the
 number that would have caught it.
 
@@ -292,25 +292,28 @@ Re-measured with both arms alternately in one session:
 
 | Lever | Recorded | Measured properly | Verdict |
 |---|---|---|---|
-| husk_threads (-j 48) | +12.34% | **-0.60%** | DENY — never a win |
-| aov_variant (beauty only) | +16.91% | **+9.79%** (p=3.7e-05) | ADMIT — a real win, a third smaller |
-| aov_variant (no crypto) | +11.25% | **+0.77%** | DENY — not a win at all |
+| husk_threads (-j 48) | +12.34% | **-0.65%** | DENY — never a win |
+| aov_variant (beauty only) | +16.91% | **+10.85%** (p=1.1e-04) | ADMIT — a real win, a third smaller |
+| aov_variant (no crypto) | +11.25% | **-0.09%** | DENY — not a win at all |
 
 The two AOV reductions are **not** interchangeable: `beauty_only` removes every
 extra pass and pays; dropping cryptomatte alone is worth nothing here. The
 recorded +11.25% for `no_crypto` was drift between sessions.
 
-All three were measured **twice**, and the second time is the one to trust:
+All three were measured more than once, and the **last** time is the one to trust:
 
 ```
 beauty_only     10:36   ADMIT  +9.19%   drift +1.45%   the card was contended
 beauty_only     23:19   ADMIT  +9.79%   drift -1.82%   the card was verified idle
+beauty_only     07:11   ADMIT  +10.85%  drift -0.34%   shared card, control steady
 
 no_crypto       16:07   DENY   +0.85%   drift +1.59%   the card was contended
 no_crypto       22:19   DENY   +0.77%   drift +0.31%   the card was verified idle
+no_crypto       07:24   DENY   -0.09%   drift -0.75%   shared card, control steady
 
 husk_threads    11:11   DENY   -0.89%   drift +1.96%   the card was contended
 husk_threads    05:52   DENY   -0.60%   drift -0.28%   the card was verified idle
+husk_threads    07:38   DENY   -0.65%   drift +0.11%   shared card, control steady
 
 frames_per_proc 08:33   ADMIT  +47.23%  (no drift field)  old code, no warm-up
 frames_per_proc 06:56   ADMIT  +46.95%  drift +2.12%   verified idle, paired
@@ -323,6 +326,30 @@ The first of each was taken before the contention detector existed, on a
 card a WSL benchmark was holding — invisible to it, and invisible to the drift
 gate, which only sees the control. The second waited the competitor out by
 name.
+
+**The third round was taken on a SHARED card, and it still stands.** All three
+2026-11-06 runs were taken with Nuke and Houdini **open** — idle, holding GPU
+contexts, drawing ~12% utilisation — and the contention record says so in
+every one: *"10 repetition(s) were taken while other GPU work was on the
+card... The control held steady and the drift is inside the limit, so the
+comparison stands"*.
+
+That is the point, and it is worth being explicit about. Contention that
+leaves the **control** steady can only make the effect look **smaller**,
+never larger — a false DENY, not a false ADMIT. So it cannot manufacture a
+win; it can only cost one. Whether the verdict stands is decided by the
+control's drift and spread, and those are in the table: drift -0.34% /
+spread 2.00%, drift -0.75% / spread 1.65%, drift +0.11% / spread 1.76% —
+all well inside the 5% limit. This is the first measurement on this box taken
+on a card with somebody else's work resident, and it is the first time the
+"steady control, shared card" case has been exercised rather than avoided.
+
+The 07:11, 07:24 and 07:38 runs are the authoritative ones for these three
+levers: **beauty_only ADMIT +10.85%** (p=1.13e-04, n=5/5, drift -0.34%,
+spread 2.00%), **no_crypto DENY -0.09%** (n=5/5, drift -0.75%, spread 1.65%),
+**husk_threads DENY -0.65%** (n=5/5, drift +0.11%, spread 1.76%). The
+conclusions do not change — beauty_only is a real win, the other two are worth
+nothing — only the numbers move.
 
 The shot lever's 08:33 run is superseded for a different reason: it was taken
 under the old code, which had **no warm-up repetition**. The split arm launches
@@ -343,11 +370,13 @@ The thread count genuinely does nothing here: the default (all 48 threads)
 and `-j 48` are the same thing on a 48-thread box. Four of the five pairs
 came out within 0.2 s of zero; the fifth was the renderer's own noise.
 
-`beauty_only` is **confirmed** — two independent paired runs agreeing within
-0.6 points, so the effect is **+9.5% ± 0.3**. `no_crypto` and `husk_threads`
-reach the same conclusion twice. All three now rest on clean series: n=5/5,
-zero contention events, and an ssim guardrail showing the candidate's picture
-as close to the shared reference as the baseline's own repetitions are.
+`beauty_only` is **confirmed** — two clean paired runs agreeing within about a
+point (+9.79% on an idle card, +10.85% on a shared card with a steady
+control), so the effect is **+10.3% ± 0.5**. `no_crypto` and `husk_threads`
+reach the same conclusion three times. All three now rest on clean series:
+n=5/5, a control whose drift and spread are inside the limit, and an ssim
+guardrail showing the candidate's picture as close to the shared reference as
+the baseline's own repetitions are.
 
 Corrections chain. When a later measurement supersedes an earlier one, the
 earlier one moves into a history chain with the reason it stopped being

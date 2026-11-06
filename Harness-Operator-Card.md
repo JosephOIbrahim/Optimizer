@@ -19,7 +19,7 @@ Numbers go to `E:\OptimizerV12\measurements\`. Code lives in `harness\`.
 
 ---
 
-## State as of 2026-11-04
+## State as of 2026-11-06
 
 ```
 render baseline   SUPERSEDED - both recorded render baselines are withdrawn:
@@ -40,7 +40,7 @@ Measured levers on this box, each against its own same-session control:
 
 ```
 frames_per_process   3 frames, 1 process each -> 1 process    +46.95%  p=2.4e-06
-aov_variant          full AOV set -> beauty only               +9.79%   p=3.7e-05
+aov_variant          full AOV set -> beauty only               +10.85%  p=1.1e-04
 power_ceiling        450 W -> 600 W (fp16 GEMM)               +10.57%   p=4.4e-06
 power_ceiling        450 W -> 600 W (Karma render)              0%   (never at the cap)
 ```
@@ -88,7 +88,7 @@ resident apps, at a different clock state. Drift between the two sessions was
 charged to the candidate.
 
 On 2026-11-03 that produced **ADMIT +12.34%, p=1.9e-05** for a thread-count
-change worth **DENY -0.60%** when the baseline was re-timed the same way as the
+change worth **DENY -0.65%** when the baseline was re-timed the same way as the
 candidate — nothing at all. The Field Notes call it "the move that evaporated";
 the verdict sat in the ledger.
 
@@ -101,27 +101,48 @@ anything. See `Optimize-The-4090-Card.md` for the details.
 Two more verdicts from that session were retracted the same way and for the
 same reason — `aov_beauty_only` (+16.91%, gated 2h40m after its baseline)
 and `aov_no_crypto` (+11.25%, gated 2h50m after its baseline). Re-measured
-properly: the beauty-only AOV lever is **+9.79%** (p=3.7e-05) — still a real
-win, a third smaller — while `no_crypto` alone is **+0.77%, DENY**: dropping
+properly: the beauty-only AOV lever is **+10.85%** (p=1.1e-04) — still a real
+win, a third smaller — while `no_crypto` alone is **-0.09%, DENY**: dropping
 cryptomatte and nothing else is worth nothing on this workload. The two AOV
 reductions are not interchangeable.
 
-Both AOV figures were measured twice on 2026-11-04, and the thread lever once
-more on 2026-11-05. The first of each was taken while a WSL benchmark held the
-card — invisible to the detector that did not exist yet, and invisible to the
-drift gate, which only sees the control. The second waited the competitor out
-by name:
+Both AOV figures were measured twice on 2026-11-04, the thread lever once more
+on 2026-11-05, and all three once more on 2026-11-06. The first of each was
+taken while a WSL benchmark held the card — invisible to the detector that did
+not exist yet, and invisible to the drift gate, which only sees the control.
+The second waited the competitor out by name:
 
 ```
 beauty_only     10:36  ADMIT  +9.19%   drift +1.45%   contended
 beauty_only     23:19  ADMIT  +9.79%   drift -1.82%   verified idle
+beauty_only     07:11  ADMIT  +10.85%  drift -0.34%   shared card, control steady
 no_crypto       16:07  DENY   +0.85%   drift +1.59%   contended
 no_crypto       22:19  DENY   +0.77%   drift +0.31%   verified idle
+no_crypto       07:24  DENY   -0.09%   drift -0.75%   shared card, control steady
 husk_threads    11:11  DENY   -0.89%   drift +1.96%   contended
 husk_threads    05:52  DENY   -0.60%   drift -0.28%   verified idle
+husk_threads    07:38  DENY   -0.65%   drift +0.11%   shared card, control steady
 frames_per_proc 08:33  ADMIT  +47.23%  (no drift field)  old code, no warm-up
 frames_per_proc 06:56  ADMIT  +46.95%  drift +2.12%   verified idle, paired
 ```
+
+**The 2026-11-06 runs were taken on a SHARED card, and they still stand.** All
+three were taken with Nuke and Houdini open — idle, holding GPU contexts,
+drawing ~12% utilisation — and the contention record says so in every one:
+*"10 repetition(s) were taken while other GPU work was on the card... The
+control held steady and the drift is inside the limit, so the comparison
+stands"*.
+
+That is worth knowing, because it is the first measurement here taken on a
+card with somebody else's work resident. Contention that leaves the **control**
+steady can only make an effect look **smaller**, never larger — so it cannot
+manufacture a win, only cost one. Whether the verdict stands is decided by
+the control's drift and spread, and those are inside the 5% limit in all
+three: drift -0.34% / spread 2.00%, drift -0.75% / spread 1.65%, drift +0.11%
+/ spread 1.76%. The authoritative runs are the 11-06 ones — **beauty_only ADMIT
++10.85%** (p=1.13e-04, n=5/5), **no_crypto DENY -0.09%**, **husk_threads DENY
+-0.65%**. The conclusions do not change: beauty_only is a real win, the other
+two are worth nothing. Only the numbers move.
 
 The shot lever's 08:33 run is superseded for a different reason: it was taken
 under the old code, which had **no warm-up repetition**. The split arm launches
@@ -133,9 +154,10 @@ zero contention events**. `Context.warmup` now defaults to 1, every lever uses
 start read as the machine changing, and the drift gate refused the campaign on
 an idle card with zero contention events.
 
-`beauty_only` is confirmed — two independent paired runs agreeing within 0.6
-points, so the effect is +9.5% ± 0.3. The thread count does nothing: default
-and `-j 48` are the same thing on a 48-thread box.
+`beauty_only` is confirmed — two clean paired runs agreeing within about a
+point (+9.79% on an idle card, +10.85% on a shared card with a steady
+control), so the effect is +10.3% ± 0.5. The thread count does nothing:
+default and `-j 48` are the same thing on a 48-thread box.
 
 `husk_threads` was also the one lever with **no quiet gate** — it measured
 repetition after repetition without waiting for the card. The lever that

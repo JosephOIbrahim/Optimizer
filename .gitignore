@@ -23,3 +23,10 @@ env/
 *.swp
 .DS_Store
 Thumbs.db
+
+# SQLite sidecar files. The databases themselves are tracked; these are
+# written by whatever is using them at the time, and they change on every
+# open.
+*.db-shm
+*.db-wal
+*.db-journal
