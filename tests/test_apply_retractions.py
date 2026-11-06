@@ -33,8 +33,15 @@ sys.path.insert(0, str(REPO))
 
 
 def _gitless_copy(tmp: Path) -> Path:
-    """A copy of the three retraction records plus one measurement."""
-    src = Path(r"E:\OptimizerV12\measurements")
+    """A copy of the three retraction records plus one measurement.
+
+    The source is the REPO's committed `measurements/` directory, not the
+    live store on E:. The live store is one machine's working copy; the
+    committed copies are the evidence, they are in version control, and a
+    test that reads them works on any machine - including a CI runner,
+    where E: does not exist.
+    """
+    src = REPO / "measurements"
     dst = tmp / "measurements"
     dst.mkdir()
     for name in ("levers_20261103_221724.json",

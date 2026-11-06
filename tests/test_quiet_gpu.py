@@ -151,9 +151,31 @@ class TestQuietWaitContract(unittest.TestCase):
         self.assertIn("measuring", src)
 
 
+def _has_nvidia_card() -> bool:
+    """Is there an NVIDIA card on this machine to read?
+
+    A GitHub runner has none. The reading is what this test checks, so
+    without a card there is nothing to read and the test says so rather
+    than failing on hardware the machine never had.
+    """
+    try:
+        import pynvml
+    except ImportError:
+        return False
+    try:
+        pynvml.nvmlInit()
+        count = pynvml.nvmlDeviceGetCount()
+        pynvml.nvmlShutdown()
+        return count > 0
+    except Exception:
+        return False
+
+
 class TestRealReading(unittest.TestCase):
     """One live reading, to prove the query still works on this box."""
 
+    @unittest.skipUnless(_has_nvidia_card(),
+                         "no NVIDIA card on this machine")
     def test_it_reads_the_real_card(self):
         busy, peak, used, total = common.gpu_busy(samples=1)
         self.assertGreater(total, 0, "nvidia-smi did not report VRAM")

@@ -32,6 +32,7 @@ These drive the actual .bat with stand-ins, the way test_bat_parser.py does.
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -72,8 +73,19 @@ class _Launcher:
         text = BAT.read_text(encoding="utf-8", errors="replace")
         text = text.replace(r'"%PY%" "%REPO%\harness\optimize.py"',
                             f'"{sys.executable}" "{echo}"')
-        text = text.replace(r'set "REPO=C:\Users\User\OneDrive\Desktop\Optimizer"',
-                            f'set "REPO={tmp}"')
+        # The launcher PICKS its interpreter from V12PY and refuses to start
+        # if that interpreter is missing - before it reaches the harness. So
+        # the stand-in has to be substituted THERE too, or the launcher stops
+        # first and the test sees no output at all.
+        #
+        # By PATTERN rather than by the literal path the launcher carries
+        # today, so a launcher whose paths change does not silently stop
+        # being tested. A lambda keeps the replacement literal: a backslash
+        # in a replacement string is an escape otherwise.
+        text = re.sub(r'set "REPO=[^"]*"',
+                      lambda m: f'set "REPO={self.tmp}"', text)
+        text = re.sub(r'set "V12PY=[^"]*"',
+                      lambda m: f'set "V12PY={sys.executable}"', text)
         # The menu would block on input; every test supplies --request, so the
         # launcher takes the command-line path. `pause` is removed so a test
         # cannot hang on it.

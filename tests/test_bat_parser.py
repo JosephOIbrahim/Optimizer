@@ -28,6 +28,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -51,8 +52,19 @@ def _run(tmp: Path, *args: str) -> list[str]:
     # throwaway repo so nothing else is touched.
     text = text.replace(r'"%PY%" "%REPO%\harness\optimize.py"',
                         f'"{sys.executable}" "{echo}"')
-    text = text.replace(r'set "REPO=C:\Users\User\OneDrive\Desktop\Optimizer"',
-                        f'set "REPO={tmp}"')
+    # The launcher PICKS its interpreter from V12PY and refuses to start if
+    # that interpreter is missing - before it ever reaches the harness. So
+    # the stand-in has to be substituted THERE too, or the launcher stops
+    # first and the test sees no output at all. That is what a CI runner
+    # saw: no C:\Python314\python.exe, so no arguments forwarded.
+    #
+    # The substitutions are by PATTERN, not by the literal path the launcher
+    # happens to carry today, so a launcher whose paths change does not
+    # silently stop being tested. A lambda keeps the replacement literal:
+    # a backslash in a replacement string is an escape otherwise.
+    text = re.sub(r'set "REPO=[^"]*"', lambda m: f'set "REPO={tmp}"', text)
+    text = re.sub(r'set "V12PY=[^"]*"',
+                  lambda m: f'set "V12PY={sys.executable}"', text)
     # The menu would block on input; every test supplies --request, so the
     # launcher takes the command-line path. `pause` is removed so a test
     # cannot hang on it.
