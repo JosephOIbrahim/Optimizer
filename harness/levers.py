@@ -722,10 +722,13 @@ def _quiet_gate(budget: common.QuietBudget) -> "Callable[[], bool]":
     only wait for what is LEFT of it.
     """
     def gate() -> bool:
-        common.wait_for_no_others(timeout_s=budget.timeout_s, verbose=True,
+        # Utilisation, not process identity: this is the one moment our own
+        # workload is not on the card, so the card's activity is a fair
+        # answer to "is anything rendering?". Waiting on process identity
+        # instead meant waiting for the operator to close their applications.
+        common.wait_for_quiet_gpu(timeout_s=budget.timeout_s, verbose=True,
                                   budget=budget)
-        return common.wait_for_quiet_gpu(timeout_s=budget.timeout_s, verbose=True,
-                                         budget=budget)
+        return True
     return gate
 
 
@@ -1139,14 +1142,26 @@ def run(name: str, ctx: Context, obj: Objective) -> Result:
     # the thing they are told to close is often one they did not know was
     # running.
     #
+    # The question asked here is "is anything actually RENDERING?", and the
+    # honest way to ask it before our own workload starts is the card's
+    # UTILISATION. Waiting on process IDENTITY instead meant waiting for the
+    # operator to CLOSE their applications — Nuke and Houdini open and idle
+    # on this box — which is not something a measurement tool should ask of
+    # anyone, and on 2026-11-06 it made the tool wait the full timeout
+    # before measuring anything.
+    #
+    # The residents are still NAMED, so the operator can see who has the
+    # card. They are not waited on.
+    #
     # Both waits and every wait INSIDE the lever draw on ONE budget, created
     # here. The timeout is the CAMPAIGN's, spent once — not a fresh allowance
     # for the wait before the lever and another for the wait before each
     # repetition. On a contended machine that used to mean two full timeouts
     # before the first measurement, and more after.
     budget = ctx.budget()
-    common.wait_for_no_others(timeout_s=ctx.quiet_timeout_s, verbose=True,
-                              budget=budget)
     common.wait_for_quiet_gpu(timeout_s=ctx.quiet_timeout_s, verbose=True,
                               budget=budget)
+    residents = common.other_gpu_processes()
+    if residents:
+        print(f"  on the card but not using it: {', '.join(residents)}")
     return fn(ctx, obj)

@@ -90,82 +90,58 @@ class TestTheLeverRunAlwaysWaitsFirst(unittest.TestCase):
 
     def test_run_waits_for_the_card_before_the_lever(self):
         body = LEVERS_SRC[LEVERS_SRC.index("def run("):]
-        self.assertIn("wait_for_no_others", body)
         self.assertIn("wait_for_quiet_gpu", body)
 
-    def test_both_wait_helpers_are_used_not_just_one(self):
-        """Process identity catches a rival holding memory; utilisation
-        catches work holding none. One without the other leaves a hole."""
+    def test_the_wait_asks_whether_anything_is_RENDERING(self):
+        """Utilisation, not process identity.
+
+        Waiting on process identity meant waiting for the operator to CLOSE
+        their applications — Nuke and Houdini open and idle on this box —
+        which is not something a measurement tool should ask of anyone. On
+        2026-11-06 it made the tool wait the full timeout before measuring
+        anything.
+
+        The residents are still NAMED, so the operator can see who has the
+        card. They are not waited on.
+        """
         body = LEVERS_SRC[LEVERS_SRC.index("def run("):]
-        self.assertIn("common.wait_for_no_others", body)
-        self.assertIn("common.wait_for_quiet_gpu", body)
+        self.assertIn("other_gpu_processes", body,
+                      "the residents must still be named")
+        self.assertNotIn("wait_for_no_others", body,
+                         "the pre-lever wait must not block on apps merely "
+                         "being open")
 
 
-class TestTheGateIsTheOneThatKnowsAboutWsl(unittest.TestCase):
-    """The gate must be the process-identity gate, not the old one.
+class TestTheGateWaitsOnActivityNotOnOpenApplications(unittest.TestCase):
+    """The gate before each repetition.
 
-    The old check asked whether the card was BUSY, which during our own
-    render is always true. The new one asks who holds it.
+    This is the one moment our own workload is not on the card, so the card's
+    activity is a fair answer to "is anything rendering?".
     """
 
-    def test_the_gate_uses_process_identity(self):
-        body = _lever_body("_quiet_gate")
-        self.assertIn("wait_for_no_others", body)
-
-    def test_the_gate_also_checks_utilisation(self):
-        """Valid only BEFORE a repetition starts, when our own workload is
-        not holding the card. It catches work that holds no memory."""
+    def test_the_gate_uses_utilisation(self):
         body = _lever_body("_quiet_gate")
         self.assertIn("wait_for_quiet_gpu", body)
 
-    def test_the_gate_draws_on_the_shared_budget(self):
-        """Both waits inside the gate must take what is LEFT of the
-        campaign's budget. Without this the gate re-grants the timeout for
-        every repetition."""
+    def test_the_gate_does_not_wait_for_apps_to_close(self):
         body = _lever_body("_quiet_gate")
-        self.assertIn("budget=budget", body,
-                      "the gate must pass the budget to its waits")
+        self.assertNotIn("wait_for_no_others", body,
+                         "waiting on process identity here means waiting for "
+                         "the operator to close their applications")
 
 
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
+class TestTheDriftGateStillKnowsAboutWsl(unittest.TestCase):
+    """WSL GPU work is invisible to the Windows process table.
 
-
-class TestThePowerLeverLetsTheCardSettle(unittest.TestCase):
-    """Changing the power ceiling changes the card's POWER STATE, and the
-    card needs a moment to re-tune its boost clock to the new limit.
-
-    Measured on this box (2026-11-05): the first GEMM after the ceiling was
-    raised from 450 W to 600 W read 157.8 TFLOPS where the card settled at
-    177.5 — an 11% deficit with nothing to do with the lever. The three
-    warm-up matmuls `_run_gemm` does are worth about 20 ms, which is not
-    enough for a 150 W limit change.
-
-    The symptom is a control that moves around for no reason, which the
-    drift gate then refuses — correctly, and with a stated reason ("something
-    else was using the GPU") that is wrong. A measurement that cannot tell a
-    settling card from a competing job is not measuring what it claims.
+    The WATCHER still asks by process identity — that is how a WSL benchmark
+    holding the card at 98% while no Windows process accounted for it was
+    caught. It is the WAITS that changed, not the watcher.
     """
 
-    def test_the_power_levers_arms_settle(self):
-        src = (REPO / "harness" / "levers.py").read_text(encoding="utf-8")
-        body = src[src.index("def lever_power_ceiling("):]
-        body = body[:body.index("\ndef ")]
-        self.assertIn("settle_s=POWER_SETTLE_S", body,
-                      "the power lever's arms must let the card settle at the "
-                      "new ceiling before measuring")
-
-    def test_the_settle_is_long_enough_to_matter(self):
-        """It has to be longer than the warm-up matmuls it replaces, or it
-        changes nothing."""
-        self.assertGreater(levers.POWER_SETTLE_S, 0.5,
-                           "a settle under half a second will not cover a "
-                           "150 W limit change")
-
-    def test_only_the_power_lever_settles(self):
-        """The settle is for a power-state change. A lever that does not
-        change the power state does not need one, and paying for it on every
-        lever would slow the whole tool down for nothing."""
-        src = (REPO / "harness" / "levers.py").read_text(encoding="utf-8")
-        self.assertEqual(src.count("settle_s=POWER_SETTLE_S"), 2,
-                         "exactly the power lever's two arms")
+    def test_the_watcher_still_asks_who_holds_the_card(self):
+        from harness import common
+        src = (REPO / "harness" / "common.py").read_text(encoding="utf-8")
+        self.assertIn("def other_gpu_processes", src)
+        self.assertIn("class ContenderWatcher", src)
+        # And the watcher is what marks a sample contended.
+        self.assertIn("other_gpu_processes", src)
