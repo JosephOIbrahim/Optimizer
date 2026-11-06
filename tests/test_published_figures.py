@@ -256,11 +256,12 @@ def _is_clean(block: dict) -> bool:
     cont = block.get("contention_events")
     if cont is None:
         return False          # the check did not exist yet - uncertified
-    if cont == 0:
-        return True           # nothing else was on the card
-    if not block.get("shared_card_note"):
+    if cont > 0 and not block.get("shared_card_note"):
         return False          # rivals were present and the record does not
                               # say the comparison stands
+    # The control is the last word, whether or not anything else was on the
+    # card: a control that drifted past the limit makes the comparison
+    # meaningless, and no amount of quiet certifies it.
     for key in ("drift", "control_spread"):
         val = block.get(key)
         if val is not None and abs(val) > CONTROL_LIMIT:
