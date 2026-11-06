@@ -1,6 +1,7 @@
 # Optimizer — a measurement harness that tells you the truth about your GPU
 
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![checks](https://github.com/JosephOIbrahim/Optimizer/actions/workflows/checks.yml/badge.svg)](https://github.com/JosephOIbrahim/Optimizer/actions/workflows/checks.yml)
 
 **A harness for measuring GPU levers on your own card, built around the
 failure mode that makes every other harness wrong.**
@@ -107,7 +108,7 @@ the candidate was faster:
 ```
 effect = (mean(baseline) - mean(candidate)) / mean(baseline)
        = (47.812 - 42.626) / 47.812
-       = 0.10846649376725509
+       = 0.10846649376725509   (and a claimed +31.4%)
        = +10.85%
 ```
 
