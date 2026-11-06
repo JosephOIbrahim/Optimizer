@@ -1,4 +1,119 @@
+# Optimizer — a measurement harness that tells you the truth about your GPU
+
+**A harness for measuring GPU levers on your own card, built around the
+failure mode that makes every other harness wrong.**
+
+This repository exists because of a specific false result, and the false
+result is the reason for most of what is in it.
+
+On 2026-11-03 this harness reported **ADMIT +12.34%** for a thread-count
+change that was worth **nothing**. The cause was not a statistical bug. The
+candidate was measured at 19:29 and gated against a baseline measured at
+18:41 — 48 minutes earlier, under a different set of resident processes.
+Welch's t-test on two *independent* series cannot distinguish drift from
+effect; that is what "independent" means. The two numbers described two
+different machine states, and the difference was charged to the candidate.
+
+Three verdicts were retracted because of it. All three are still in the
+records, marked, with the original claims visible.
+
+**Nothing here is the lever. The gates are.** A lever that wins by 0.5% is
+indistinguishable from a machine that drifted by 0.5%, and the only honest
+way to tell them apart is to measure both arms in the same session and then
+check the control.
+
+---
+
+## The gates
+
+Every one of these exists because a campaign got past the gate that should
+have stopped it.
+
+| Gate | What it refuses | The failure it was written for |
+|---|---|---|
+| **Paired arms** | a comparison whose two arms were measured in different sessions | the +12.34% phantom above |
+| **Drift** | a control whose *first* repetition differs from its *last* | a control that changed state mid-run |
+| **Control spread** | a control whose *largest* deviation from its own median is too large | a busy window in the **middle** of a run — end-to-end drift reads +0.00% and passes a control that moved enormously |
+| **Warm-up** | a series whose first repetition paid for a cold cache | a cold page cache, shader cache and BVH landing *inside* the measured series, read as drift |
+| **Quiet budget** | a campaign that waits for the card twice | the timeout was applied once before the lever and again per repetition |
+| **Contention** | — (it discloses) | a rival on the card, detected by **process identity**, not by utilisation |
+| **SSIM guardrail** | a candidate that changed the picture | the bar was the reference frame scored against *itself*, so the baseline side carried a free 1.0 nobody rendered |
+
+Contention is the one that does not refuse, and the reasoning is worth
+reading: a rival that hits the **control** moves it, and the drift and
+spread checks catch it. A rival that hits the **candidate** makes the
+candidate read slow, so the effect is *understated* — a false DENY, never a
+false ADMIT. Contention that leaves the control steady can only move a
+verdict towards refusing it.
+
+## The retraction chain
+
+A verdict that turns out to be wrong is not deleted. It is **marked**, and
+the measurement that replaced it is recorded beside it:
+
+```
+RETRACTED — was: ADMIT  (+16.91%)  +16.91% improvement, p=2.183e-10, n=5/5
+```
+
+The original text stays. The replacement pointer moves, and every
+measurement it displaced goes into a history chain with the reason it
+stopped being current. A corrected *reason* is recorded **alongside** the
+original rather than over it, because the original reason was true when it
+was written and a reader who sees only the newest text cannot tell that.
+
+So a reader who greps for an old admission still finds it, marked, with the
+correction next to it.
+
+## What it measures, on this box
+
+| lever | workload | effect |
+|---|---|---|
+| frames per process 1→3 | Karma render, a shot | **+46.95%**, p=2.4e-06 |
+| power ceiling 450→600 W | fp16 GEMM | **+10.57%**, p=4.4e-06 |
+| AOV set → beauty only | Karma render, a frame | **+10.85%**, p=1.13e-04 |
+| AOV set → no crypto | Karma render, a frame | -0.09%, DENY |
+| thread count default vs `-j 48` | Karma render, a frame | -0.65%, DENY |
+
+Records carry the raw paired series, so the effect, the p-value and the
+drift all re-derive from the file alone. A record that keeps only summary
+statistics cannot be *checked* — which is the position this repo was in
+before the retraction.
+
+## Running it
+
+```
+Optimize-The-4090.bat --request render|shot|compute|profile
+                       [--reps N] [--warmup N] [--levers a,b]
+```
+
+`--request` names the *workload*, not the lever, because the card is not the
+constraint in every workload. The launcher stages the measurement record
+and commits it with the campaign, so what was measured and the evidence for
+it land in the same commit.
+
+**Start here:**
+
+- [`Optimize-The-4090-Card.md`](Optimize-The-4090-Card.md) — the levers, the
+  gates, and what each verdict means
+- [`Harness-Operator-Card.md`](Harness-Operator-Card.md) — running it, and
+  what to do when it breaks
+- [`measurements/README.md`](measurements/README.md) — the record format, and
+  how the retraction chain is stored
+- [`CLAUDE.md`](CLAUDE.md) — the design decisions, with the reasoning
+
+Every published figure in the cards and in the source is machine-checked
+against the records: `tests/test_published_figures.py` and
+`tests/test_source_verdicts.py` fail if a document publishes a number no
+record holds, publishes a superseded number as current, or leaves a figure
+undeclared.
+
+---
+
 # OptimizerV6 - RTX 4090 VFX Workstation Optimizer
+
+> **This is the earlier system, kept for reference.** The measurement
+> harness above is what this repository is now; the material below documents
+> the V6 design it grew out of and still shares a machine with.
 
 **Research-grade GPU optimization system for professional VFX workflows**
 

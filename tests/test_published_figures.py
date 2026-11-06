@@ -63,6 +63,14 @@ CARDS = ["Optimize-The-4090-Card.md", "Harness-Operator-Card.md"]
 #: figures, so the same rule applies to it.
 CLAUDE = "CLAUDE.md"
 
+#: The README. It is the front door for anyone arriving from GitHub, so
+#: the same rule applies to it — and it now leads with the harness's own
+#: figures rather than the V6 design targets that used to fill it.
+README = "README.md"
+
+#: Every document the figure rules apply to.
+DOCUMENTS = CARDS + [CLAUDE, README]
+
 
 def _records():
     """Every committed measurement record, parsed."""
@@ -226,6 +234,21 @@ ALLOWED_NON_RECORD = {
     # --- baseline coefficients, from the V12 baseline store ---------------
     "0.17%": "the gemm baseline's cv - a V12 baseline record, not a measurement",
     "0.14%": "the shot baseline's cv - a V12 baseline record, not a measurement",
+    # --- the README's own figures ---------------------------------------
+    "0.5%": "the README's argument that a small win is indistinguishable "
+            "from drift - an illustrative size, not a measurement",
+    "-15%": "a V6 design target in the README's archived section, never "
+            "measured by this harness",
+    "-30%": "a V6 design target in the README's archived section, never "
+            "measured by this harness",
+    "40%": "a V6 design target in the README's archived section, never "
+           "measured by this harness",
+    "30%": "a V6 design target in the README's archived section, never "
+           "measured by this harness",
+    "-8%": "a V6 design target in the README's archived section, never "
+           "measured by this harness",
+    "-100%": "a V6 design target in the README's archived section, never "
+             "measured by this harness",
 }
 
 
@@ -386,6 +409,10 @@ class TestEveryPublishedFigureTracesToARecord(unittest.TestCase):
     def test_claude_md_publishes_only_traceable_figures(self):
         """The repo's own instructions quote the same figures."""
         self._unsourced(_card_text(CLAUDE), CLAUDE)
+
+    def test_the_readme_publishes_only_traceable_figures(self):
+        """The README is the front door for anyone arriving from GitHub."""
+        self._unsourced(_card_text(README), README)
 
 
 class TestTheCardsDoNotPublishWithdrawnFigures(unittest.TestCase):
@@ -759,10 +786,23 @@ class TestTheChecksCanFire(unittest.TestCase):
         import tempfile
         with tempfile.TemporaryDirectory(prefix="published_figures_") as tmp:
             docs = Path(tmp)
-            for name in CARDS + [CLAUDE]:
+            for name in DOCUMENTS:
                 shutil.copy2(REPO / name, docs / name)
             card = docs / CARDS[0]
             original = card.read_text(encoding="utf-8")
+
+            # The UNPLANTED copy has to PASS first. Two things fall out of
+            # that: the copy is complete, so a failure below cannot be a
+            # missing document; and the failure below is caused by the
+            # PLANT, not by something else in the copy. Without this, a
+            # subprocess that failed for any reason at all would satisfy
+            # the assertion, and the test would prove nothing.
+            clean = self._run(docs)
+            self.assertEqual(
+                clean.returncode, 0,
+                f"the checks failed on the UNPLANTED copy, so a failure on "
+                f"a planted one would prove nothing:\n{clean.stdout[-2000:]}")
+
             for what, old, new in self.PLANTS:
                 with self.subTest(defect=what):
                     self.assertIn(
@@ -792,7 +832,7 @@ class TestTheAllowlistIsHonest(unittest.TestCase):
     def test_every_allowlist_entry_is_still_used_by_a_document(self):
         """An entry nothing quotes is dead weight - and dead allowlist
         entries are how a real figure sneaks in later."""
-        text = "\n".join(_card_text(n) for n in CARDS) + _card_text(CLAUDE)
+        text = "\n".join(_card_text(n) for n in DOCUMENTS)
         for token in ALLOWED_NON_RECORD:
             with self.subTest(token=token):
                 self.assertIn(token, text,
@@ -820,7 +860,7 @@ class TestTheCardsCiteTheRecordsTheyQuote(unittest.TestCase):
 
     def test_every_record_named_by_a_card_is_committed(self):
         named = set()
-        for name in CARDS + [CLAUDE]:
+        for name in DOCUMENTS:
             text = _card_text(name)
             named.update(re.findall(r"optimize_\d+_\d+\.json", text))
             named.update(re.findall(r"levers_\d+_\d+\.json", text))
