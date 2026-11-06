@@ -11,7 +11,7 @@ different set of resident processes. The two numbers described two different
 machine states and the difference between them was charged to the candidate.
 (The "+0.7%" that first appeared against it was the phantom's own cross-session
 arithmetic, not a measurement of the lever — measured with both arms
-alternately in one session the same change is DENY -0.60%.)
+alternately in one session the same change is DENY -0.65%.)
 
 The arithmetic was not at fault. Welch's t-test on two INDEPENDENT series
 cannot distinguish drift from effect; that is exactly what "independent" means.

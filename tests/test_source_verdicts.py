@@ -42,6 +42,7 @@ path, not to state a measurement.
 """
 from __future__ import annotations
 
+import ast
 import json
 import re
 import sys
@@ -133,6 +134,56 @@ SOURCE_VERDICT_SITES = [
     (r"OptimizerV12/v12/objective\.py", r'"(\+0\.7)%" that first appeared',
      "arithmetic"),
 
+    # --- the TEST files' DOCSTRINGS. Prose, not fixtures. ----------------
+    # A test's fixture strings are arbitrary - `replacement_verdict="DENY
+    # (-0.89%)"` is chosen to exercise a code path. Its DOCSTRINGS are not:
+    # they explain why the test exists, in prose, with figures in them, and
+    # those figures go stale exactly as the harness's do.
+    (r"tests/test_apply_retractions\.py",
+     r"was: ADMIT \(([+-]?\d+\.?\d*)%\)", "history"),
+    (r"tests/test_drift_gate\.py", r"recorded ADMIT ([+-]?\d+\.?\d*)%",
+     "history"),
+    (r"tests/test_drift_gate\.py",
+     r"busy \d+s for reps 2-4\s+drift \+0\.00%\s+PASS\s+ADMIT "
+     r"([+-]?\d+\.?\d*)%", "exempt"),
+    (r"tests/test_harness_nextgen\.py", r"came back ADMIT ([+-]?\d+\.?\d*)%",
+     "history"),
+    (r"tests/test_harness_nextgen\.py", r"is DENY ([+-]?\d+\.?\d*)%",
+     ("husk_threads", None)),
+    (r"tests/test_harness_nextgen\.py", r'"(\+0\.7)%"', "arithmetic"),
+    (r"tests/test_metric_coupling\.py", r"ADMIT ([+-]?\d+\.?\d*)%, p=",
+     "exempt"),
+    (r"tests/test_published_figures\.py",
+     r"came back ADMIT ([+-]?\d+\.?\d*)%", "history"),
+    (r"tests/test_record_serialisation\.py",
+     r"([+-]?\d+\.?\d*)% verdict", "history"),
+    (r"tests/test_retirement\.py", r"ADMIT  ([+-]?\d+\.?\d*)%", "history"),
+    (r"tests/test_retirement\.py", r"it is DENY ([+-]?\d+\.?\d*)%",
+     ("husk_threads", None)),
+    (r"tests/test_retirement\.py", r'"(\+0\.7)%"', "arithmetic"),
+    (r"tests/test_source_verdicts\.py",
+     r"the lever is worth ([+-]?\d+\.?\d*)%", "exempt"),
+    (r"tests/test_source_verdicts\.py",
+     r"carried `([+-]?\d+\.?\d*)%` for the", "exempt"),
+    (r"tests/test_source_verdicts\.py", r'said "DENY ([+-]?\d+\.?\d*)%"',
+     "exempt"),
+    (r"tests/test_source_verdicts\.py", r"DENY \(([+-]?\d+\.?\d*)%\)",
+     "exempt"),
+    (r"tests/test_stale_baseline\.py", r"produced ADMIT ([+-]?\d+\.?\d*)%",
+     "history"),
+    (r"tests/test_stale_baseline\.py", r"came back ADMIT at ([+-]?\d+\.?\d*)%",
+     "history"),
+    (r"tests/test_stale_baseline\.py",
+     r"same change is DENY ([+-]?\d+\.?\d*)%", ("husk_threads", None)),
+    (r"tests/test_stale_baseline\.py", r'"(\+0\.7)%" that first appeared',
+     "arithmetic"),
+    (r"OptimizerV12/tests/test_supersede\.py",
+     r"ADMIT  ([+-]?\d+\.?\d*)%", "history"),
+    (r"OptimizerV12/tests/test_supersede\.py",
+     r"DENY ([+-]?\d+\.?\d*)% on 2026-11-04", "history"),
+    (r"OptimizerV12/tests/test_supersede\.py",
+     r"DENY ([+-]?\d+\.?\d*)% on 2026-11-05", "history"),
+
     # --- EXEMPT. Not a measurement: a documented counter-example of a bug,
     # --- or an illustrative figure. Declared so it stays visible. --------
     (r"harness/levers\.py",
@@ -219,6 +270,45 @@ def _source_files():
     return [f for f in files if "__pycache__" not in str(f)]
 
 
+#: The test directories whose DOCSTRINGS are prose. Their fixture strings
+#: are not checked - a fixture is arbitrary by design - but a docstring
+#: explains why the test exists, and the figures in it are claims.
+TEST_DOCSTRING_GLOBS = [
+    ("tests", "*.py"),
+    ("OptimizerV12/tests", "*.py"),
+]
+
+
+def _test_docstring_lines():
+    """Every line of every docstring in the test files, with its file.
+
+    Parsed with `ast` so that a docstring is a DOCSTRING and not any other
+    string in the file. That is what separates prose from fixtures: the
+    fixture `replacement_verdict="DENY (-0.89%)"` is a string literal
+    inside a function body, and it is never a docstring.
+    """
+    out = []
+    for sub, pat in TEST_DOCSTRING_GLOBS:
+        for f in sorted((REPO / sub).rglob(pat)):
+            if "__pycache__" in str(f):
+                continue
+            try:
+                tree = ast.parse(f.read_text(encoding="utf-8"))
+            except (OSError, SyntaxError, UnicodeDecodeError):
+                continue
+            rel = f.relative_to(REPO).as_posix()
+            for node in ast.walk(tree):
+                doc = None
+                if isinstance(node, (ast.Module, ast.FunctionDef,
+                                     ast.AsyncFunctionDef, ast.ClassDef)):
+                    doc = ast.get_docstring(node, clean=False)
+                if not doc:
+                    continue
+                for line in doc.splitlines():
+                    out.append((rel, line))
+    return out
+
+
 class TestTheSourceTreePublishesCurrentVerdicts(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -230,6 +320,11 @@ class TestTheSourceTreePublishesCurrentVerdicts(unittest.TestCase):
             rel = f.relative_to(REPO).as_posix()
             for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
                 cls.lines.append((rel, n, line))
+        # The test files' docstrings, as lines. Their line number is 0 -
+        # the docstring has no line of its own - but the line is what the
+        # declarations match against.
+        for rel, line in _test_docstring_lines():
+            cls.lines.append((rel, 0, line))
 
     def _declared(self, rel: str, line: str):
         """The declared sites this line matches, with the figure captured.

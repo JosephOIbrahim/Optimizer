@@ -9,7 +9,7 @@ earlier, under different resident processes, and recorded:
     ADMIT  +12.34%  p=1.882e-05
 
 Re-timed the same way as the candidate, the same change was worth nothing —
-measured with both arms alternately in one session it is DENY -0.60%. (The
+measured with both arms alternately in one session it is DENY -0.65%. (The
 "+0.7%" that first appeared against it was the phantom's own cross-session
 arithmetic, not a measurement of the lever.) The Field Notes call it "the move
 that evaporated". That verdict is still in the ledger.

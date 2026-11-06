@@ -44,6 +44,7 @@ Nothing here renders, touches the GPU, or writes anywhere.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import unittest
@@ -689,6 +690,10 @@ class TestTheDerivedFiguresAreDerived(unittest.TestCase):
                         f"points - the card says they agree to about a point")
 
 
+@unittest.skipIf(
+    os.environ.get("PUBLISHED_FIGURES_MUTATING"),
+    "this IS the mutation run - the checks are proved here, not re-proved "
+    "inside it")
 class TestTheChecksCanFire(unittest.TestCase):
     """A test that cannot fail is not a test.
 
@@ -713,12 +718,21 @@ class TestTheChecksCanFire(unittest.TestCase):
     ]
 
     def _run(self):
-        """Run the checks in this file against the card as it stands."""
+        """Run the checks in this file against the card as it stands.
+
+        The subprocess must NOT run this file's mutation test again, or the
+        run recurses: each level plants a defect and spawns the next level,
+        and the card on disk is shared between them, so a nested level can
+        see a card the level above has already changed. The environment
+        marker below is what stops it.
+        """
         import subprocess
+        env = dict(os.environ, PUBLISHED_FIGURES_MUTATING="1")
         return subprocess.run(
             [sys.executable, "-m", "pytest", "tests/test_published_figures.py",
              "-q", "--no-header", "-x"],
-            cwd=str(REPO), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180)
+            cwd=str(REPO), capture_output=True, text=True, encoding="utf-8",
+            errors="replace", timeout=180, env=env)
 
     def test_each_planted_defect_is_caught(self):
         import shutil

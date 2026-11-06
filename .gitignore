@@ -30,3 +30,10 @@ Thumbs.db
 *.db-shm
 *.db-wal
 *.db-journal
+
+# Scratch scripts under data/. These are throwaway probes written during a
+# session (a figure check, a timing run) and named with a leading underscore
+# so they sort first. They are not part of the repo and must never be
+# committed - one of them slipped into a commit that was meant to carry
+# only a test.
+data/_*.py
