@@ -133,3 +133,64 @@ class TestTheRepoCopiesAreCurrent(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestTheMappingCannotEscapeTheStore(unittest.TestCase):
+    """A mapping names a FILE INSIDE the store — not a path of its own.
+
+    `store / entry` with an ABSOLUTE path on the right REPLACES the store,
+    and a relative climb out of it climbs out. Both were reachable: the
+    tool would have written the retraction somewhere other than the
+    measurement store, and said nothing about it.
+    """
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="retr_escape_"))
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.store = _gitless_copy(self.tmp)
+        self.env = dict(os.environ, OPTIMIZER_MEASURE_ROOT=str(self.store))
+
+    def _mapping(self, record, measurement="optimize_20261105_065602.json"):
+        m = self.tmp / "mapping.json"
+        m.write_text(json.dumps([{
+            "record": record,
+            "label": "aov_beauty_only",
+            "measurement": measurement,
+            "reason": "re-measured with the current harness",
+        }]), encoding="utf-8")
+        return m
+
+    def _run(self, mapping):
+        return subprocess.run(
+            [sys.executable, str(REPO / "harness" / "apply_retractions.py"),
+             "--mapping", str(mapping)],
+            capture_output=True, text=True, timeout=120, env=self.env)
+
+    def test_an_absolute_record_path_is_refused(self):
+        outside = self.tmp / "elsewhere.json"
+        shutil.copy2(self.store / "levers_20261103_221724.json", outside)
+        before = outside.read_bytes()
+        r = self._run(self._mapping(str(outside)))
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("escapes the store", r.stdout)
+        # and it did not touch the file outside
+        self.assertEqual(outside.read_bytes(), before,
+                         "the file outside the store must not be written to")
+
+    def test_a_relative_climb_out_is_refused(self):
+        r = self._run(self._mapping(r"..\elsewhere.json"))
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("escapes the store", r.stdout)
+
+    def test_an_absolute_measurement_path_is_refused(self):
+        r = self._run(self._mapping(
+            "levers_20261103_221724.json",
+            measurement=str(self.tmp / "elsewhere.json")))
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("escapes the store", r.stdout)
+
+    def test_a_normal_name_still_works(self):
+        """The guard must not break the ordinary case."""
+        r = self._run(self._mapping("levers_20261103_221724.json"))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("updated", r.stdout)

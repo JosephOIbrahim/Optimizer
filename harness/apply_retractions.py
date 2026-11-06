@@ -40,6 +40,23 @@ def read(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _inside_store(path: Path) -> bool:
+    """Is this path inside the store the tool was told to work on?
+
+    A mapping names a FILE INSIDE the store — but `store / entry` with an
+    ABSOLUTE path on the right REPLACES the store, and `store / "..\\..\\x"`
+    climbs out of it. Both were reachable: the tool would have written the
+    retraction somewhere other than the measurement store, and said nothing.
+
+    The fix is to refuse, loudly, and name both the path and the store — the
+    same way every other refusal in this tool does.
+    """
+    try:
+        return path.resolve().is_relative_to(MEASUREMENTS.resolve())
+    except (OSError, ValueError):
+        return False
+
+
 def _find_result(results: dict, label: str) -> dict:
     """The measurement block for a retraction's label.
 
@@ -159,6 +176,15 @@ def main(argv=None) -> int:
     for entry in mapping:
         record = MEASUREMENTS / entry["record"]
         new = MEASUREMENTS / entry["measurement"]
+        for field, path in (("record", record), ("measurement", new)):
+            if not _inside_store(path):
+                print(f"[ERROR] the mapping's {field} escapes the store: "
+                      f"{entry[field]}")
+                print(f"       it resolves to {path}")
+                print(f"       the store is {MEASUREMENTS}")
+                print("       a mapping names a FILE INSIDE the store, not a "
+                      "path of its own")
+                return 1
         if not record.exists():
             print(f"[ERROR] no such record: {record}")
             return 1

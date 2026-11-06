@@ -253,7 +253,7 @@ C:\Python314\python.exe harness\selftest.py        expect: selftest: PASS
 | `preflight BLOCKED` | something heavy is on the GPU; the list is printed. Close it, rerun |
 | `preflight: CLEAR of optimizers — but GPU work IS resident` | a GPU workload is running; it is named below the line |
 | `other GPU work on the card (...)` | something else holds the card. The harness is waiting for it, and says how long is left |
-| `the BASELINE moved -12.0% across the run` | something else was using the GPU. Close it and rerun — this check exists because a starved control once produced a "significant" p=0.0146 win |
+| `the BASELINE moved -33.8% across the run` | something else was using the GPU. Close it and rerun — this check exists because a starved control once produced a "significant" p=0.0146 win |
 | `REFUSING TO COMPARE ... ANOTHER SESSION` | you are on the retired path. Use `Optimize-The-4090.bat` |
 | `this baseline was SUPERSEDED` | you are gating against a withdrawn reference. Record a fresh baseline — the old one cannot support the comparison |
 | `torch venv not ready yet - see option [5]` | menu [5]; rebuild: `C:\...\Python312\python.exe -m venv E:\OptimizerV12\venv`, then `pip install torch --index-url https://download.pytorch.org/whl/cu130` |
