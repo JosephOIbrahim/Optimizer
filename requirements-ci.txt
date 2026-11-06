@@ -1,0 +1,33 @@
+# Dependencies for the test suites - NOT the full requirements.txt.
+#
+# requirements.txt is the OptimizerV6 product's dependency set: FastAPI,
+# pandas, scipy, torch, mcp, the ComfyUI bridges. The TESTS need almost
+# none of that, and a CI runner should not spend its minutes installing a
+# 2 GB torch to check that a document published a number no record holds.
+#
+# Every package below is imported by something the suites actually execute.
+# The set was arrived at empirically: each was the missing module in a CI
+# run, and the suites pass with exactly these and nothing more.
+#
+# Verified green on Windows with Python 3.13 and 3.14.
+
+# The test runner itself.
+pytest>=8.0
+
+# The contention detector enumerates processes by identity (not by
+# utilisation), so it needs psutil.
+psutil>=6.0
+
+# The SSIM guardrail scores frames against each other.
+numpy>=2.0
+
+# Pillow reads and writes the frames the guardrail scores.
+Pillow>=10.0
+
+# nvidia-ml-py is pynvml: the power ceiling and throttle levers read it.
+# Importing it needs no GPU; only querying does, and the tests stub that.
+nvidia-ml-py>=12.0
+
+# The V6 orchestrator's own imports: config.yaml and the console output.
+pyyaml>=6.0
+rich>=13.0

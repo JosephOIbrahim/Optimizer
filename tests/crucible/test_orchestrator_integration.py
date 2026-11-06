@@ -10,9 +10,13 @@ Verifies:
     OptimizationAction members (Forge-3's _extend_enum trick is V8-side
     only, so a fresh V7 launch keeps a clean enum).
 
-The smoke runs use `C:\\Python314\\python.exe` because the local venv is
-known-broken (pyvenv.cfg points to a missing miniconda interpreter --
-documented in `_handoff_forge3.md` open issue #1).
+The smoke runs use the interpreter running the tests, so they exercise the
+orchestrator under the environment that is actually installed. The local
+`C:\\Python314\\python.exe` is preferred when it is there — the local venv
+was known-broken (pyvenv.cfg points to a missing miniconda interpreter --
+documented in `_handoff_forge3.md` open issue #1) — but where it is absent
+(CI, another machine) the running interpreter is used instead, so these
+smokes RUN somewhere rather than skipping everywhere.
 """
 from __future__ import annotations
 
@@ -26,7 +30,20 @@ import pytest
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PY = r"C:\Python314\python.exe"
+#: The interpreter the smoke runs use.
+#:
+#: The local `C:\Python314\python.exe` is preferred when it is there — the
+#: local venv was known-broken (pyvenv.cfg points to a missing miniconda
+#: interpreter -- documented in `_handoff_forge3.md` open issue #1) — but
+#: where it is absent (CI, another machine) the interpreter RUNNING THE
+#: TESTS is used instead, so these smokes run somewhere rather than
+#: skipping everywhere.
+#:
+#: `OPTIMIZER_SMOKE_PYTHON` overrides the choice, which is how the CI path
+#: can be exercised on a machine where the local interpreter exists.
+_LOCAL_PY = Path(r"C:\Python314\python.exe")
+PY = (os.environ.get("OPTIMIZER_SMOKE_PYTHON")
+      or (str(_LOCAL_PY) if _LOCAL_PY.exists() else sys.executable))
 SMOKE_TIMEOUT_S = 180  # --once should be well under this
 
 
