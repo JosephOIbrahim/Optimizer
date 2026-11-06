@@ -137,6 +137,13 @@ corrected reason ALONGSIDE the original rather than over it. Corrections to
 the correction chain the same way (`reason_correction_history`): a later
 correction must not erase an earlier one.
 
+`harness/apply_retractions.py` moves a retraction's pointer in bulk, from a
+mapping file. It also moves the repo's committed copy of the record, because
+a retraction edits a record **in place** — the file's name does not change,
+which is exactly the case a "copy the new files" sync cannot see. It skips
+the sync when the store is a COPY rather than the live one, so a test's
+fixture can never overwrite the real evidence.
+
 ### Optimize The 4090
 
 `Optimize-The-4090.bat` is the current entry point for optimization. It takes a
