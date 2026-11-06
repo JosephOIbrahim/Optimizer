@@ -253,7 +253,7 @@ def build_message(new: List[str], changed: List[str]) -> str:
         "figure quoted in the operator cards can be checked against the record "
         "it came from.",
         "",
-        "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>",
+        "Co-Authored-By: Claude Code <noreply@anthropic.com>",
     ]
     return "\n".join(lines)
 
@@ -332,7 +332,7 @@ def build_campaign_message(record: Optional[Dict[str, Any]],
         "cards can be",
         "checked against the record it came from.",
         "",
-        "Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>",
+        "Co-Authored-By: Claude Code <noreply@anthropic.com>",
     ]
     return "\n".join([headline, ""] + lines)
 

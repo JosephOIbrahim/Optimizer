@@ -127,22 +127,22 @@ frames_per_proc 06:56  ADMIT  +46.95%  drift +2.12%   verified idle, paired
 ```
 
 **The 2026-11-06 runs were taken on a SHARED card, and they still stand.** All
-three were taken with Nuke and Houdini open — idle, holding GPU contexts,
-drawing ~12% utilisation — and the contention record says so in every one:
-*"10 repetition(s) were taken while other GPU work was on the card... The
-control held steady and the drift is inside the limit, so the comparison
-stands"*.
+three were taken with Nuke and Houdini **open** on the box, holding GPU
+contexts (`Nuke17.1.exe x14:1559MiB`, `houdini.exe:7112MiB`). The contention
+is recorded in every record, in the record's own words: *"10 repetition(s)
+were taken while other GPU work was on the card... The control held steady and
+the drift is inside the limit, so the comparison stands"*.
 
 That is worth knowing, because it is the first measurement here taken on a
 card with somebody else's work resident. Contention that leaves the **control**
 steady can only make an effect look **smaller**, never larger — so it cannot
-manufacture a win, only cost one. Whether the verdict stands is decided by
-the control's drift and spread, and those are inside the 5% limit in all
-three: drift -0.34% / spread 2.00%, drift -0.75% / spread 1.65%, drift +0.11%
-/ spread 1.76%. The authoritative runs are the 11-06 ones — **beauty_only ADMIT
-+10.85%** (p=1.13e-04, n=5/5), **no_crypto DENY -0.09%**, **husk_threads DENY
--0.65%**. The conclusions do not change: beauty_only is a real win, the other
-two are worth nothing. Only the numbers move.
+manufacture a win, only cost one. The drift and spread checks decide, and
+those are inside the 5% limit in all three: drift -0.34% / spread 2.00%, drift
+-0.75% / spread 1.65%, drift +0.11% / spread 1.76%. The authoritative runs are
+the 11-06 ones — **beauty_only ADMIT +10.85%** (p=1.13e-04, n=5/5),
+**no_crypto DENY -0.09%**, **husk_threads DENY -0.65%**. The conclusions do
+not change: beauty_only is a real win, the other two are worth nothing. Only
+the numbers move.
 
 The shot lever's 08:33 run is superseded for a different reason: it was taken
 under the old code, which had **no warm-up repetition**. The split arm launches

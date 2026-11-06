@@ -328,17 +328,17 @@ gate, which only sees the control. The second waited the competitor out by
 name.
 
 **The third round was taken on a SHARED card, and it still stands.** All three
-2026-11-06 runs were taken with Nuke and Houdini **open** — idle, holding GPU
-contexts, drawing ~12% utilisation — and the contention record says so in
-every one: *"10 repetition(s) were taken while other GPU work was on the
-card... The control held steady and the drift is inside the limit, so the
-comparison stands"*.
+2026-11-06 runs were taken with Nuke and Houdini **open** on the box, holding
+GPU contexts (`Nuke17.1.exe x14:1559MiB`, `houdini.exe:7112MiB`). The
+contention is recorded in every record, in the record's own words: *"10
+repetition(s) were taken while other GPU work was on the card... The control
+held steady and the drift is inside the limit, so the comparison stands"*.
 
 That is the point, and it is worth being explicit about. Contention that
 leaves the **control** steady can only make the effect look **smaller**,
 never larger — a false DENY, not a false ADMIT. So it cannot manufacture a
-win; it can only cost one. Whether the verdict stands is decided by the
-control's drift and spread, and those are in the table: drift -0.34% /
+win; it can only cost one. The drift and spread checks decide, and they are in
+the table: drift -0.34% /
 spread 2.00%, drift -0.75% / spread 1.65%, drift +0.11% / spread 1.76% —
 all well inside the 5% limit. This is the first measurement on this box taken
 on a card with somebody else's work resident, and it is the first time the

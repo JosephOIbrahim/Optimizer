@@ -31,8 +31,9 @@ from harness import retract  # noqa: E402
 
 #: The live store. Overridable so the script can be exercised against a copy
 #: without touching the real records.
+LIVE_MEASUREMENTS = Path(r"E:\OptimizerV12\measurements")
 MEASUREMENTS = Path(os.environ.get("OPTIMIZER_MEASURE_ROOT",
-                                   r"E:\OptimizerV12\measurements"))
+                                   str(LIVE_MEASUREMENTS)))
 
 
 def read(path: Path) -> dict:
@@ -84,14 +85,77 @@ def describe(path: Path, label: str) -> str:
     return "  ".join(bits)
 
 
+def sync_repo_copies(entries) -> bool:
+    """Move the repo's committed copies of the records this run edited.
+
+    A retraction edits a record IN PLACE. The repo keeps a committed copy of
+    every record — that copy is the evidence the operator cards cite — and a
+    copy goes stale the moment the original is edited, which is precisely
+    what a retraction does. So the tool that writes the retraction has to
+    move the copy in the same breath, or the repo quietly disagrees with
+    the live store about what was measured.
+
+    Skipped when the store is a COPY (a test's temporary directory), because
+    syncing a copy into the real repo would overwrite the real evidence with
+    a fixture. That is the failure mode this guard exists to prevent.
+
+    Returns True when the repo's copies are current (including when the sync
+    was correctly skipped), False when they are known to be stale.
+    """
+    try:
+        live = MEASUREMENTS.resolve() == LIVE_MEASUREMENTS.resolve()
+    except OSError:
+        live = False
+    if not live:
+        print("  sync           : skipped — this is a copy of the store, "
+              "not the live one")
+        return True
+
+    try:
+        from harness import sync_measurements
+    except ImportError as e:  # pragma: no cover - import guard
+        print(f"  sync           : SKIPPED ({e})")
+        print("                   the repo's copies of these records are now "
+              "STALE — run Sync-Measurements.bat")
+        return False
+
+    lines = ["Point the retracted verdicts at the current measurements", ""]
+    lines.append("A retraction edits a record in place. The repo keeps a "
+                 "committed copy of")
+    lines.append("every record, and that copy is what the operator cards cite "
+                 "as evidence,")
+    lines.append("so it has to move with the original or the two disagree "
+                 "about what was")
+    lines.append("measured.")
+    lines.append("")
+    for entry in entries:
+        lines.append(f"  {entry['record']}  {entry['label']}  ->  "
+                     f"{Path(entry['measurement']).name}")
+    lines.append("")
+    lines.append("Co-Authored-By: Claude Code <noreply@anthropic.com>")
+    message = "\n".join(lines)
+
+    rc = sync_measurements.main(["--source", str(MEASUREMENTS),
+                                  "--message", message])
+    if rc != 0:
+        print("  sync           : FAILED")
+        print("                   the repo's copies of these records are now "
+              "STALE — run Sync-Measurements.bat")
+        return False
+    return True
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--mapping", required=True,
                     help="JSON: [{record, label, measurement, reason}, ...]")
+    ap.add_argument("--no-sync", action="store_true",
+                    help="do not copy the edited records into the repo")
     args = ap.parse_args(argv)
 
     mapping = json.loads(Path(args.mapping).read_text(encoding="utf-8"))
+    applied = []
     for entry in mapping:
         record = MEASUREMENTS / entry["record"]
         new = MEASUREMENTS / entry["measurement"]
@@ -126,6 +190,12 @@ def main(argv=None) -> int:
             print(f"[ERROR] {e}")
             return 1
         print("  updated")
+        applied.append(entry)
+
+    if applied and not args.no_sync:
+        print()
+        if not sync_repo_copies(applied):
+            return 1
     return 0
 
 
