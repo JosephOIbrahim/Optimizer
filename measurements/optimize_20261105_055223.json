@@ -29,5 +29,9 @@
       "contention_events": 0
     }
   },
-  "recorded_utc": "2026-11-05T10:52:23Z"
+  "recorded_utc": "2026-11-05T10:52:23Z",
+  "superseded": {
+    "date": "2026-11-06",
+    "reason": "SUPERSEDED 2026-11-06. Re-measured on 2026-11-06 with the current harness, and the conclusion is unchanged: the thread count makes no difference. Now DENY -0.65% (paired, n=5/5, baseline drift +0.11%, control spread 1.76%) in optimize_20261106_073812.json, where this measurement said DENY -0.60% (drift -0.28%). The five paired differences are -0.18, -0.06, +0.77, -0.30 and +1.29 seconds - they change sign, which is what a lever that does nothing looks like. On a 48-thread box the default thread count and -j 48 are the same thing. The measurement is now honest in the ways this one was not: the ssim guardrail's bar is measured between two different renders rather than scored against itself, the drift gate sees a busy window anywhere in the run and not only end to end, and every lever warms up before measuring. This is the lever that produced the +12.34% phantom in the first place, so it is worth being explicit that the number has now been produced three ways, on three different days, and has not once been a win. Superseded rather than deleted; its numbers stay readable."
+  }
 }

@@ -32,5 +32,9 @@
       "contention_events": 0
     }
   },
-  "recorded_utc": "2026-11-05T04:19:46Z"
+  "recorded_utc": "2026-11-05T04:19:46Z",
+  "superseded": {
+    "date": "2026-11-06",
+    "reason": "SUPERSEDED 2026-11-06. Re-measured on 2026-11-06 with the current harness, and the conclusion holds: the beauty-only AOV reduction is a real win, now +10.85% (paired, n=5/5, p=1.13e-04, baseline drift -0.34%, control spread 2.00%) in optimize_20261106_071113.json. The figure moved up from +9.79% because the measurement is now honest in three ways this one was not: the ssim guardrail's bar was the reference frame scored against ITSELF, so the baseline side carried a free 1.0 that nobody rendered; the drift gate compared the control's first repetition with its last, which sees a monotone change and nothing else, so a busy window in the MIDDLE of a run could hide behind equal end points; and no lever warmed up, so the first repetition paid for a cold page cache, a cold shader cache and a cold BVH inside the measured series. Superseded, not deleted - the numbers are real measurements of a real machine and stay readable."
+  }
 }

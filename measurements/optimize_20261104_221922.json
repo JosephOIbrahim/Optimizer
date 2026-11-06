@@ -30,5 +30,9 @@
       "contention_events": 0
     }
   },
-  "recorded_utc": "2026-11-05T03:19:22Z"
+  "recorded_utc": "2026-11-05T03:19:22Z",
+  "superseded": {
+    "date": "2026-11-06",
+    "reason": "SUPERSEDED 2026-11-06. RE-MEASURED 2026-11-06 with the current harness, and the conclusion is unchanged: dropping the cryptomatte AOV on its own is worth NOTHING. Now DENY -0.09% (paired, n=5/5, baseline drift -0.75%, control spread 1.65%), where the earlier measurement said DENY +0.77% (drift +0.31%). The five paired differences are -0.79, +0.96, +1.00, -0.70 and -0.25 seconds - they change sign, which is what a lever that does nothing looks like. The measurement is now honest in the ways the earlier one was not: the ssim guardrail's bar is measured between two different renders rather than scored against itself, the drift gate sees a busy window anywhere in the run and not only end to end, every lever warms up, and a warm-up repetition is excluded from the series rather than being measured as if it were a real one. Superseded rather than deleted; its numbers stay readable. The two AOV reductions remain NOT interchangeable: beauty_only removes every extra pass and pays (+10.85%), and no_crypto alone does not. Superseded rather than deleted; its numbers stay readable."
+  }
 }
