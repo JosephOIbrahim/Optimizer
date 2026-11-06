@@ -1,0 +1,85 @@
+{
+  "request": "render",
+  "objective": "karma-xpu",
+  "spec": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "driver": "621.14",
+    "sm_count": 128,
+    "vram_gib": 23.98828125,
+    "power_limit_w": 450.0,
+    "power_limit_min_w": 150.0,
+    "power_limit_max_w": 600.0,
+    "hags": true,
+    "clock_sm_max_mhz": 3105,
+    "mem_bandwidth_gbs": 1008.096,
+    "compute_capability": "8.9"
+  },
+  "results": {
+    "aov_variant": {
+      "n_baseline": 5.0,
+      "n_candidate": 5.0,
+      "baseline_mean": 47.812,
+      "candidate_mean": 42.626,
+      "effect": 0.10846649376725509,
+      "min_effect": 0.05,
+      "paired": 1.0,
+      "p_value": 0.00011321489170426711,
+      "guardrail_ssim": 7.073084924758187e-05,
+      "contended_samples": 10,
+      "contenders": [
+        "Nuke17.1.exe x14:1559MiB",
+        "houdini.exe:7112MiB"
+      ],
+      "shared_card_note": "10 repetition(s) were taken while other GPU work was on the card (Nuke17.1.exe x14:1559MiB, houdini.exe:7112MiB). The control held steady and the drift is inside the limit, so the comparison stands; contention that leaves the control steady can only make the effect look SMALLER, never larger.",
+      "baseline_series": [
+        47.27,
+        48.3,
+        48.31,
+        48.07,
+        47.10999999999999
+      ],
+      "candidate_series": [
+        43.32,
+        43.68,
+        43.03,
+        42.2,
+        40.9
+      ],
+      "paired_diffs": [
+        -3.950000000000003,
+        -4.619999999999997,
+        -5.280000000000001,
+        -5.869999999999997,
+        -6.209999999999994
+      ],
+      "guardrail_ssim_baseline": [
+        0.9960259305303234,
+        0.9952887050415907,
+        0.9943776264005372,
+        0.9948537686779959
+      ],
+      "guardrail_ssim_candidate": [
+        0.9954079121383563,
+        0.9944821089673452,
+        0.9948207380572038,
+        0.9957399557368111,
+        0.9955837576648635
+      ],
+      "control_spread": 0.019970875806116246,
+      "variant": "beauty_only",
+      "ok": true,
+      "why": "+10.85% improvement, p=0.0001132, n=5/5 \u2014 clears both significance and effect size \u2014 but 10 repetition(s) were taken while other GPU work was on the card (Nuke17.1.exe x14:1559MiB, houdini.exe:7112MiB). The control held steady and the drift is inside the limit, so the comparison stands; contention that leaves the control steady can only make the effect look SMALLER, never larger.",
+      "drift": -0.0033848106621538142,
+      "contention_events": 10,
+      "applied": false,
+      "restore_error": "",
+      "notes": []
+    }
+  },
+  "quiet_budget": {
+    "timeout_s": 900.0,
+    "waited_s": 25.176461799885146,
+    "waits_that_gave_up": 0
+  },
+  "recorded_utc": "2026-11-06T12:11:13Z"
+}
