@@ -1,5 +1,7 @@
 # Optimizer — a measurement harness that tells you the truth about your GPU
 
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **A harness for measuring GPU levers on your own card, built around the
 failure mode that makes every other harness wrong.**
 
@@ -755,9 +757,15 @@ vram_allocation:
 
 ## 📝 License
 
-**Proprietary - For Joseph Ibrahim's VFX Workstation**
+**MIT** — see [LICENSE](LICENSE).
 
-This optimization system is customized for specific hardware (RTX 4090 + Threadripper PRO 7965WX) and should not be redistributed without modification.
+The harness is MIT because the gates are only useful if other people
+measuring their own cards can read them and reuse them. Under default
+copyright they could read them and not build on them.
+
+The measurements in `measurements/` are real results from one machine
+(an RTX 4090 and a Threadripper PRO 7965WX). The *method* is portable; the
+numbers are not, and the records say which is which.
 
 ---
 
