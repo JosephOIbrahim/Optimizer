@@ -270,8 +270,19 @@ def _is_clean(block: dict) -> bool:
     return True
 
 
+#: Where the documents live. Overridable so the mutation test can plant a
+#: defect into a COPY of the card rather than into the real one.
+#:
+#: This is not a convenience. The mutation test used to write the defect
+#: into the shared card on disk, and the card was left holding the very
+#: defect the test exists to catch when the run was killed mid-plant. A
+#: restore in a `finally` is not enough: a finally does not run when the
+#: process is killed.
+DOCS_DIR = Path(os.environ.get("PUBLISHED_FIGURES_DOCS", str(REPO)))
+
+
 def _card_text(name: str) -> str:
-    return (REPO / name).read_text(encoding="utf-8")
+    return (DOCS_DIR / name).read_text(encoding="utf-8")
 
 
 def _withdrawn_records():
@@ -717,17 +728,26 @@ class TestTheChecksCanFire(unittest.TestCase):
          "**ADMIT +9.79%**, p=3.7e-05"),
     ]
 
-    def _run(self):
-        """Run the checks in this file against the card as it stands.
+    def _run(self, docs_dir):
+        """Run the checks in this file against the documents in `docs_dir`.
+
+        Two things matter here, and both were learned the hard way.
 
         The subprocess must NOT run this file's mutation test again, or the
         run recurses: each level plants a defect and spawns the next level,
         and the card on disk is shared between them, so a nested level can
         see a card the level above has already changed. The environment
         marker below is what stops it.
+
+        And the documents it reads must be the COPY in `docs_dir`, not the
+        real ones. The test used to write the defect into the shared card,
+        and when the run was killed mid-plant the card was left holding the
+        very defect the test exists to catch. A copy cannot be corrupted
+        that way, and it needs no restore.
         """
         import subprocess
-        env = dict(os.environ, PUBLISHED_FIGURES_MUTATING="1")
+        env = dict(os.environ, PUBLISHED_FIGURES_MUTATING="1",
+                   PUBLISHED_FIGURES_DOCS=str(docs_dir))
         return subprocess.run(
             [sys.executable, "-m", "pytest", "tests/test_published_figures.py",
              "-q", "--no-header", "-x"],
@@ -737,24 +757,28 @@ class TestTheChecksCanFire(unittest.TestCase):
     def test_each_planted_defect_is_caught(self):
         import shutil
         import tempfile
-        card = REPO / CARDS[0]
-        original = card.read_text(encoding="utf-8")
-        try:
+        with tempfile.TemporaryDirectory(prefix="published_figures_") as tmp:
+            docs = Path(tmp)
+            for name in CARDS + [CLAUDE]:
+                shutil.copy2(REPO / name, docs / name)
+            card = docs / CARDS[0]
+            original = card.read_text(encoding="utf-8")
             for what, old, new in self.PLANTS:
                 with self.subTest(defect=what):
-                    if old not in original:
-                        continue
+                    self.assertIn(
+                        old, original,
+                        f"the plant for {what!r} no longer matches the card, "
+                        f"so this defect is no longer being proved against. "
+                        f"Update the plant to the card's current wording - a "
+                        f"plant that silently does not apply is a proof that "
+                        f"quietly proves nothing")
                     card.write_text(original.replace(old, new), encoding="utf-8")
-                    try:
-                        r = self._run()
-                    finally:
-                        card.write_text(original, encoding="utf-8")
+                    r = self._run(docs)
                     self.assertNotEqual(
                         r.returncode, 0,
                         f"planting {what} did not fail the checks - a check "
                         f"that cannot catch this defect is not a check")
-        finally:
-            card.write_text(original, encoding="utf-8")
+                    card.write_text(original, encoding="utf-8")
 
 
 class TestTheAllowlistIsHonest(unittest.TestCase):
