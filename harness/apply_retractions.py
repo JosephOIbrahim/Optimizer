@@ -39,22 +39,42 @@ def read(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _find_result(results: dict, label: str) -> dict:
+    """The measurement block for a retraction's label.
+
+    A retraction names the VARIANT ("aov_beauty_only"); a measurement keys
+    its results by the LEVER ("aov_variant") and carries the variant inside.
+    So the lookup has to bridge the two.
+    """
+    if label in results:
+        return results[label]
+    for v in results.values():
+        if isinstance(v, dict) and v.get("variant") == label:
+            return v
+    # One lever in the record: it is the one.
+    if len(results) == 1:
+        return next(iter(results.values()))
+    return {}
+
+
 def describe(path: Path, label: str) -> str:
     """One line about a measurement, read back out of the record itself."""
     doc = read(path)
     results = doc.get("results") or {}
-    v = results.get(label) or {}
-    bits = [label]
+    v = _find_result(results, label)
+    if not v:
+        return f"{label} — measured with the current harness"
+    bits = [v.get("variant") or label]
     if v.get("effect") is not None:
-        bits.append(f"{v['effect']:+.2f}%")
+        bits.append(f"{v['effect'] * 100:+.2f}%")
     if v.get("p_value") is not None:
         bits.append(f"p={v['p_value']:.3g}")
     if v.get("n_baseline") is not None:
         bits.append(f"n={v['n_baseline']:.0f}")
     if v.get("drift") is not None:
-        bits.append(f"drift {v['drift']:+.2f}%")
+        bits.append(f"drift {v['drift'] * 100:+.2f}%")
     if v.get("control_spread") is not None:
-        bits.append(f"spread {v['control_spread']:.2f}%")
+        bits.append(f"spread {v['control_spread'] * 100:.2f}%")
     if v.get("contention_events") is not None:
         bits.append(f"contention {v['contention_events']}")
     if v.get("variant"):

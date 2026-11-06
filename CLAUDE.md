@@ -67,7 +67,7 @@ The-Method.bat
 gate a candidate against a baseline read from disk — usually measured in an
 earlier session, under different resident apps — so drift was charged to the
 candidate. That produced the ledger's **ADMIT +12.34% (p=1.9e-05)** for a
-thread-count change worth **DENY -0.60%** — nothing at all.
+thread-count change worth **DENY -0.65%** — nothing at all.
 `harness/method.py candidate` and
 `harness/lever_run.py` now REFUSE to produce a verdict at all; every lever is
 implemented once, in `harness/levers.py`, and measured paired.
@@ -83,29 +83,38 @@ because it was measured against a stale control" are different facts.
 Two more verdicts from that session were retracted the same way:
 `aov_beauty_only` (+16.91%, baseline 2h40m earlier) and `aov_no_crypto`
 (+11.25%, baseline 2h50m earlier). Re-measured properly, the beauty-only AOV
-lever is **+9.79%** (p=3.7e-05) — still real, a third smaller — while
-`no_crypto` alone is **+0.77%, DENY**: dropping cryptomatte and nothing else
+lever is **+10.85%** (p=1.13e-04) — still real, a third smaller — while
+`no_crypto` alone is **-0.09%, DENY**: dropping cryptomatte and nothing else
 is worth nothing here. The two AOV reductions are not interchangeable. The
 measured levers to trust are the ones in `Optimize-The-4090-Card.md`.
 
-All three were measured twice. The first of each was taken while a WSL
-benchmark held the card — invisible to the detector that did not exist yet, and
-invisible to the drift gate, which only sees the control:
+Each was measured more than once, and the table is a HISTORY — every run stays
+in it, because what a measurement said at the time is part of the record:
 
 ```
 beauty_only     10:36  ADMIT  +9.19%   drift +1.45%   contended
 beauty_only     23:19  ADMIT  +9.79%   drift -1.82%   verified idle
+beauty_only     07:11  ADMIT +10.85%   drift -0.34%   verified idle, current
 no_crypto       16:07  DENY   +0.85%   drift +1.59%   contended
 no_crypto       22:19  DENY   +0.77%   drift +0.31%   verified idle
+no_crypto       07:24  DENY   -0.09%   drift -0.75%   verified idle, current
 husk_threads    11:11  DENY   -0.89%   drift +1.96%   contended
 husk_threads    05:52  DENY   -0.60%   drift -0.28%   verified idle
+husk_threads    07:38  DENY   -0.65%   drift +0.11%   verified idle, current
 frames_per_proc 08:33  ADMIT  +47.23%  (no drift field)  old code, no warm-up
 frames_per_proc 06:56  ADMIT  +46.95%  drift +2.12%   verified idle, paired
 ```
 
-`beauty_only` is confirmed — two independent paired runs agreeing within 0.6
-points, so the effect is +9.5% ± 0.3. Each second measurement supersedes the
-first; both stay in the retraction's history chain.
+The 2026-11-06 runs are the first taken on a SHARED card — Nuke and Houdini
+open, idle, holding GPU contexts. The contention is recorded in every one of
+them, and the comparison still stands, because the rule is that contention
+which leaves the CONTROL steady can only make the effect look SMALLER, never
+larger: a false DENY, not a false ADMIT. The drift and spread checks are what
+decide, and they are in the table.
+
+`beauty_only` is confirmed across three independent paired runs spanning
++9.19% to +10.85%. Each new measurement supersedes the last; every one stays
+in the retraction's history chain, with the reason it stopped being current.
 
 `frames_per_process` is measured twice as well, and the second run is the
 authoritative one: **+46.95%, p=2.4e-06, n=3/3, paired, drift +2.12%, zero
@@ -149,7 +158,7 @@ for Karma render, which draws 104 W of 450 W and never reaches the cap.
 1. **Baseline and candidate are measured alternately, in one session.** On
    2026-11-03 this repo gated a thread-count sweep against a baseline measured
    48 minutes earlier, under different resident processes: ADMIT +12.34%,
-   p=1.9e-05. Re-timed the same way it was **DENY -0.60%** — the Field Notes'
+   p=1.9e-05. Re-timed the same way it was **DENY -0.65%** — the Field Notes'
    "move that evaporated". Now both arms run alternately, the gate uses a paired
    t-test, and the baseline's drift across the run is printed and REFUSED if it
    exceeds 5%.
