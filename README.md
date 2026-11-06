@@ -167,6 +167,81 @@ dependency-free in `OptimizerV12/v12/objective.py` — `paired_t_test` for
 paired series, `welch_t_test` for unpaired. Import it rather than
 reimplementing it, and you will get the same number the record stores.
 
+## How a retraction is recorded
+
+The other half of the mechanism: what happens when a verdict turns out to
+be wrong.
+
+The chain is in
+[`measurements/levers_20261103_221724.json`](measurements/levers_20261103_221724.json),
+under the result labelled `aov_beauty_only`. It is four measurement rounds
+and two corrections to the reason — and it opens like this:
+
+```json
+"verdict": "RETRACTED — was: ADMIT  (+16.91%)  +16.91% improvement, p=2.183e-10, n=5/5 — clears both significance and effect size",
+"retracted": {
+  "date": "2026-11-04",
+  "original_verdict": "ADMIT  (+16.91%)  +16.91% improvement, p=2.183e-10, n=5/5 — clears both significance and effect size",
+  "original_mean_s": 39.934000000000005,
+```
+
+**The original text is still the first thing you read.** That `verdict`
+string is the original claim with the withdrawal in front of it, and the
+claim itself is kept whole in `original_verdict`, with its measurement in
+`original_mean_s`. Nothing was deleted: a reader who greps for `+16.91%`
+finds it, marked, with the reason next to it.
+
+**The reason was not overwritten either.** `reason` holds the 2026-11-04
+reason, unchanged. When the reason itself became false, the correction went
+into `reason_corrected` **alongside** it, and the superseded correction into
+`reason_correction_history`. Corrections chain the way replacements chain,
+because losing an earlier correction is the same failure as losing an
+earlier measurement, in the same place. A record that changes to suit the
+present is the exact failure this mechanism exists to prevent.
+
+**Each new measurement pushed the last one into the history**, with the
+reason it stopped being current:
+
+| stopped being current | the measurement | what it said | why |
+|---|---|---|---|
+| 2026-11-04 | `render_20261103_221724.json` | ADMIT +16.91%, p=2.183e-10 | gated against a baseline measured 2h40m earlier, under a different machine state — so it compared two machine states, not two configurations |
+| 2026-11-04 | `optimize_20261104_103605.json` | ADMIT +9.19%, drift +1.45% | taken while a WSL benchmark held the card, invisible to a contention check that did not exist yet |
+| 2026-11-05 | `optimize_20261104_231946.json` | ADMIT +9.79%, p=3.723e-05, drift -1.82% | the ssim guardrail's bar was the reference frame scored against itself, the drift gate could not see a mid-run window, and no lever warmed up |
+| current | `optimize_20261106_071113.json` | **ADMIT +10.85%**, p=0.000113, drift -0.34%, spread 2.00% | — |
+
+The first row is preserved in `original_verdict`; the middle two are the
+entries in `replacement_history`; the last is what `replacement_measurement`
+points at. All four are readable, and none of them was overwritten.
+
+The last row is the same lever and the same conclusion as the first: the
+beauty-only AOV reduction is a real win. What changed is the number, and the
+number moved because the measurement became honest — which is what the
+history is *for*. A chain that ended at "the first number was wrong" would
+throw away the reason the number moved.
+
+**Read it yourself:**
+
+```python
+import json, pathlib
+d = json.loads(pathlib.Path(
+    "measurements/levers_20261103_221724.json").read_text(encoding="utf-8"))
+r = [x for x in d["results"] if x["label"] == "aov_beauty_only"][0]
+t = r["retracted"]
+
+print(r["verdict"])                        # RETRACTED — was: ADMIT (+16.91%) ...
+print(t["original_verdict"])                # the claim as it was made
+print(t["replacement_measurement"])         # what it points at now
+for h in t["replacement_history"]:
+    print(h["date"], h["measurement"].split("\\")[-1])
+    print("   superseded because:", h["superseded_because"][:70], "...")
+```
+
+`harness/retract.py` is where the chain is written. `update_replacement`
+moves the pointer and pushes what it displaced into the history with the
+reason; `mark_superseded` does the same for a whole measurement record, so
+that a superseded measurement says so at the record level and not only in
+the chain that points at it.
+
 ## Running it
 
 ```
@@ -184,6 +259,9 @@ it land in the same commit.
 - [Re-deriving one measurement yourself](#re-deriving-one-measurement-yourself)
   — the whole method in one worked example, from the raw series to the
   published figure
+- [How a retraction is recorded](#how-a-retraction-is-recorded) — what
+  happens when a verdict turns out to be wrong, and why the original text
+  is never deleted
 - [`Optimize-The-4090-Card.md`](Optimize-The-4090-Card.md) — the levers, the
   gates, and what each verdict means
 - [`Harness-Operator-Card.md`](Harness-Operator-Card.md) — running it, and

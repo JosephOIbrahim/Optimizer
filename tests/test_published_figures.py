@@ -133,13 +133,23 @@ def _record_facts():
         facts.add(f"p={v:.4g}")
 
     def add_text(text):
-        """Every percentage a piece of record prose holds.
+        """Every percentage AND p-value a piece of record prose holds.
 
         A retraction preserves the ORIGINAL claim it withdrew, and the reason
         it was withdrawn. Both are in the record, and a card quotes them as
         history - so their figures are figures the records hold.
+
+        The p-values matter as much as the percentages. The original
+        verdict's own p-value lives in prose - "ADMIT (+16.91%) ...
+        p=2.183e-10" - and a document that quotes that verdict verbatim
+        quotes the p-value with it. If the prose scan missed p-values, such
+        a quote would be unchecked, and an allowlist entry for it would be
+        permitted - a hole shaped exactly like the one this scan exists to
+        close.
         """
         for m in re.finditer(r"[+-]?\d+\.?\d*%", str(text)):
+            facts.add(m.group(0))
+        for m in re.finditer(r"p=\d+\.?\d*e[+-]?\d+", str(text)):
             facts.add(m.group(0))
 
     def add_result(block):

@@ -155,6 +155,8 @@ SOURCE_VERDICT_SITES = [
      "exempt"),
     (r"tests/test_published_figures\.py",
      r"came back ADMIT ([+-]?\d+\.?\d*)%", "history"),
+    (r"tests/test_published_figures\.py",
+     r'"ADMIT \((\+16\.91)%\)', "history"),
     (r"tests/test_record_serialisation\.py",
      r"([+-]?\d+\.?\d*)% verdict", "history"),
     (r"tests/test_retirement\.py", r"ADMIT  ([+-]?\d+\.?\d*)%", "history"),
