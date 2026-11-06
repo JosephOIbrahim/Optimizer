@@ -80,7 +80,7 @@ class TestTheRetractionMovesTheCopy(unittest.TestCase):
         return subprocess.run(
             [sys.executable, str(REPO / "harness" / "apply_retractions.py"),
              "--mapping", str(mapping or self._mapping()), *extra],
-            capture_output=True, text=True, timeout=120, env=self.env)
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120, env=self.env)
 
     def test_a_copy_store_does_not_sync_into_the_real_repo(self):
         """The dangerous case: a fixture overwriting the real evidence."""
@@ -164,7 +164,7 @@ class TestTheMappingCannotEscapeTheStore(unittest.TestCase):
         return subprocess.run(
             [sys.executable, str(REPO / "harness" / "apply_retractions.py"),
              "--mapping", str(mapping)],
-            capture_output=True, text=True, timeout=120, env=self.env)
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120, env=self.env)
 
     def test_an_absolute_record_path_is_refused(self):
         outside = self.tmp / "elsewhere.json"

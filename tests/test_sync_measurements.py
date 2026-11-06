@@ -42,7 +42,7 @@ from harness import sync_measurements as sync  # noqa: E402
 
 def _git(repo: Path, *args: str) -> str:
     p = subprocess.run(["git", *args], cwd=str(repo), capture_output=True,
-                       text=True, timeout=60)
+                       text=True, encoding="utf-8", errors="replace", timeout=60)
     return p.stdout
 
 

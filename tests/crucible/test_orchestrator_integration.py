@@ -36,6 +36,8 @@ def _run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess:
         cwd=str(cwd),
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         timeout=SMOKE_TIMEOUT_S,
     )
 
@@ -97,7 +99,8 @@ def test_v8_registers_four_specialists_and_disables_v7_engineers() -> None:
 
     proc = subprocess.run(
         [PY, "-c", script],
-        capture_output=True, text=True, timeout=SMOKE_TIMEOUT_S,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        timeout=SMOKE_TIMEOUT_S,
         cwd=str(REPO_ROOT),
     )
     assert proc.returncode == 0, (
@@ -155,7 +158,8 @@ def test_v7_enum_is_clean_when_v8_not_imported() -> None:
 
     proc = subprocess.run(
         [PY, "-c", script],
-        capture_output=True, text=True, timeout=SMOKE_TIMEOUT_S,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        timeout=SMOKE_TIMEOUT_S,
         cwd=str(REPO_ROOT),
     )
     assert proc.returncode == 0, (

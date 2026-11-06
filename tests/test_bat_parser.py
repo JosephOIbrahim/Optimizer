@@ -60,7 +60,7 @@ def _run(tmp: Path, *args: str) -> list[str]:
     out = tmp / "bat.bat"
     out.write_text(text, encoding="utf-8")
     r = subprocess.run(["cmd", "/c", str(out), *args],
-                       capture_output=True, text=True, timeout=120)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
     return [ln[4:] for ln in r.stdout.splitlines() if ln.startswith("ARG:")]
 
 

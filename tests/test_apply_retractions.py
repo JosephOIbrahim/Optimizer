@@ -68,7 +68,7 @@ class TestMovingAPointer(unittest.TestCase):
         r = subprocess.run(
             [sys.executable, str(REPO / "harness" / "apply_retractions.py"),
              "--mapping", str(mapping or self._mapping())],
-            capture_output=True, text=True, timeout=120, env=self.env)
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120, env=self.env)
         return r
 
     def test_the_pointer_moves(self):

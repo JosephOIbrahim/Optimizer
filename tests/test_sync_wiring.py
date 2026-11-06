@@ -83,7 +83,7 @@ class _Launcher:
 
     def run(self, *args: str) -> str:
         r = subprocess.run(["cmd", "/c", str(self.bat), *args],
-                           capture_output=True, text=True, timeout=120)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
         return r.stdout
 
     @staticmethod
@@ -168,7 +168,7 @@ class _Sandbox:
 
     def _git(self, *args: str) -> str:
         return subprocess.run(["git", *args], cwd=str(self.repo),
-                              capture_output=True, text=True).stdout
+                              capture_output=True, text=True, encoding="utf-8", errors="replace").stdout
 
     def cleanup(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -295,9 +295,9 @@ class TestTheCampaignCommitsOneCommit(unittest.TestCase):
         it must not itself be the thing that breaks the repository.
         """
         before = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(REPO),
-                                capture_output=True, text=True).stdout.strip()
+                                capture_output=True, text=True, encoding="utf-8", errors="replace").stdout.strip()
         after = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(REPO),
-                               capture_output=True, text=True).stdout.strip()
+                               capture_output=True, text=True, encoding="utf-8", errors="replace").stdout.strip()
         self.assertEqual(before, after,
                          "the real repository's HEAD moved — a test reached it")
         stray = list((REPO / "measurements").glob("optimize_20261105_120000.json"))
