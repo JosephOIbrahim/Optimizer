@@ -81,6 +81,92 @@ drift all re-derive from the file alone. A record that keeps only summary
 statistics cannot be *checked* — which is the position this repo was in
 before the retraction.
 
+## Re-deriving one measurement yourself
+
+The table above is a claim until you check it. Here is one measurement, end
+to end, so you can see that the published figure is arithmetic rather than
+assertion — and so you can run it yourself on your own card.
+
+The record is
+[`measurements/optimize_20261106_071113.json`](measurements/optimize_20261106_071113.json):
+the beauty-only AOV reduction, five repetitions, both arms alternating in
+one session.
+
+**The raw series** — seconds per frame, and the difference between the arms
+in each repetition:
+
+```json
+"baseline_series":  [47.27, 48.30, 48.31, 48.07, 47.11],
+"candidate_series": [43.32, 43.68, 43.03, 42.20, 40.90],
+"paired_diffs":     [-3.95, -4.62, -5.28, -5.87, -6.21],
+```
+
+**The effect.** Render time is lower-is-better, so a positive effect means
+the candidate was faster:
+
+```
+effect = (mean(baseline) - mean(candidate)) / mean(baseline)
+       = (47.812 - 42.626) / 47.812
+       = 0.10846649376725509
+       = +10.85%
+```
+
+**The p-value.** A one-sided paired t-test on the *differences*, not on the
+two series. That is the whole point of the pairing: the arms were measured
+alternately in one session, so the machine's drift is common to both and
+cancels in the difference. Welch's test on two independent series cannot do
+that — it attributes the drift to the candidate, which is how the +12.34%
+phantom above happened.
+
+```
+mean(diff) = -5.186
+sd(diff)   = sqrt( sum((d - mean)^2) / (n - 1) ) = 0.918330
+se         = sd / sqrt(5)                        = 0.410690
+t          = mean / se                          = -12.627540
+                                                -> flipped, lower is better: 12.627540
+df         = n - 1                               = 4
+p          = one-sided t(12.627540, 4)          = 0.00011321489170426711
+```
+
+**The gates, from the same series.** The control is the baseline arm:
+
+```
+drift          = (last - first) / |first|
+               = (47.11 - 47.27) / 47.27        = -0.34%
+control spread = max|d - median| / median
+               = 0.96 / 48.07                   =  2.00%
+```
+
+Both inside the 5% limit, so the comparison stands. The spread is the check
+that catches a busy window in the **middle** of a run: end-to-end drift
+reads `+0.00%` when the first and last repetitions happen to match, and
+passes a control that moved enormously.
+
+**Do it yourself:**
+
+```python
+import json, math, pathlib
+
+d = json.loads(pathlib.Path(
+    "measurements/optimize_20261106_071113.json").read_text(encoding="utf-8"))
+v = d["results"]["aov_variant"]
+B, C, D = v["baseline_series"], v["candidate_series"], v["paired_diffs"]
+
+b, c = sum(B) / len(B), sum(C) / len(C)
+print("effect", (b - c) / b)                  # 0.10846649376725509
+
+n = len(D)
+m = sum(D) / n
+sd = math.sqrt(sum((x - m) ** 2 for x in D) / (n - 1))
+t = m / (sd / math.sqrt(n))
+print("t", -t, "df", n - 1)                    # 12.627539615387068 df 4
+```
+
+The p-value needs the t distribution, which the harness implements
+dependency-free in `OptimizerV12/v12/objective.py` — `paired_t_test` for
+paired series, `welch_t_test` for unpaired. Import it rather than
+reimplementing it, and you will get the same number the record stores.
+
 ## Running it
 
 ```
@@ -95,6 +181,9 @@ it land in the same commit.
 
 **Start here:**
 
+- [Re-deriving one measurement yourself](#re-deriving-one-measurement-yourself)
+  — the whole method in one worked example, from the raw series to the
+  published figure
 - [`Optimize-The-4090-Card.md`](Optimize-The-4090-Card.md) — the levers, the
   gates, and what each verdict means
 - [`Harness-Operator-Card.md`](Harness-Operator-Card.md) — running it, and
