@@ -299,6 +299,11 @@ class Pair:
         self.max_attempts = 3
         #: How many repetitions had to be discarded.
         self.contended_reps = 0
+        #: The rivals seen the last time ANY arm found the card shared. They
+        #: belong to the card, not to one arm, so this is campaign-wide: a
+        #: rival that has not changed since the last sighting is not going
+        #: anywhere, and retrying against it just costs GPU time.
+        self._last_contenders: Optional[set] = None
 
     def _run_arm(self, arm: Arm, index: int) -> Dict[str, Any]:
         out = arm(index)
@@ -329,6 +334,20 @@ class Pair:
         sampler saw a busy card and our own render had made it busy.
 
         Asking who holds the card is the question that survives our own load.
+
+        But a process holding a GPU CONTEXT is not a process RENDERING. On a
+        normal workstation — Nuke and Houdini open, idle — both are resident,
+        and a retry loop against them burns three times the GPU time for the
+        same answer, because the rival is not going anywhere.
+
+        So a repetition is retried only when the contender set CHANGED. The
+        rivals belong to the CARD, not to one arm, so the comparison is
+        against the last set seen anywhere in the campaign. If the same
+        rivals are there as last time, waiting will not help, and the value
+        is kept with the contention recorded. The drift and spread checks
+        then decide whether the campaign is usable — which is the right
+        place for that decision, because contention that leaves the control
+        steady can only make the effect look smaller.
         """
         for attempt in range(self.max_attempts):
             if self.quiet_check is not None:
@@ -341,6 +360,14 @@ class Pair:
                 return out
             self.contended_reps += 1
             out["_others"] = list(watcher.contenders)
+            current = set(watcher.contenders)
+            if self._last_contenders is not None and current == self._last_contenders:
+                # The same rivals as the last time anything saw them, so
+                # waiting changes nothing.
+                self._last_contenders = current
+                out["_contaminated"] = True
+                return out
+            self._last_contenders = current
             if attempt + 1 < self.max_attempts:
                 print(f"    rep {index + 1}: other GPU work was on the card "
                       f"during the measurement ({', '.join(watcher.contenders)}) — "

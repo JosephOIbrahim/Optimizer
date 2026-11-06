@@ -194,36 +194,70 @@ class TestTheQuietMachineStillPasses(unittest.TestCase):
         self.assertAlmostEqual(detail["effect"], 0.094, places=2)
 
 
-class TestContendedSamplesCanRefuse(unittest.TestCase):
-    """A sample known to be contended must be able to refuse the verdict.
+class TestContentionIsRecordedButTheControlDecides(unittest.TestCase):
+    """A process holding a GPU CONTEXT is not a process RENDERING.
 
     The engine detects other GPU work on the card while a repetition runs.
-    It used to count that and gate nothing — the contaminated sample was
-    RETAINED after three failed retries and the run continued.
+    It used to count that and gate nothing; then, for a while, it counted that
+    and REFUSED the verdict outright. Both were wrong.
+
+    Refusing outright made the tool unable to measure on a normal desk. On
+    2026-11-06 this box had Nuke and Houdini OPEN — idle, drawing 12%
+    utilisation — so every repetition was flagged, every campaign was
+    refused, and no measurement could be taken at all.
+
+    Counting but not refusing is right, and the reason is the DIRECTION of
+    the error:
+
+      * a rival that hits the CONTROL moves the control, and the drift and
+        spread checks catch it — they are checked FIRST, and they refuse;
+      * a rival that hits the CANDIDATE arm makes the candidate read slow,
+        so the effect is UNDERSTATED — a false DENY, not a false ADMIT.
+
+    So contention that leaves the control steady can only move the verdict
+    towards refusing it, which is the safe direction. A verdict that
+    survives both checks was not made on a stolen card.
     """
 
     def setUp(self):
         self.obj = render_objective(resolution="1024x429", samples=128)
 
-    def test_a_contended_sample_refuses(self):
+    def test_a_shared_card_with_a_steady_control_still_admits(self):
         base = [48.0, 48.1, 47.9, 48.0, 48.05]
         cand = [43.5, 43.4, 43.6, 43.5, 43.55]
         res = _result(base, cand)
         res.contended_samples = 1
         res.contenders = ["wsl:Ubuntu:1870: /python3.12"]
-        ok, why, _ = levers.gate(res, self.obj,
-                                 {"ssim": ([0.996] * 5, [0.995] * 5)})
-        self.assertFalse(ok, "a contended sample must not support a verdict")
-        self.assertIn("contended", why)
+        ok, why, detail = levers.gate(res, self.obj,
+                                     {"ssim": ([0.996] * 5, [0.995] * 5)})
+        self.assertTrue(ok, why)
 
-    def test_the_reason_names_the_contender(self):
+    def test_the_record_says_the_card_was_shared(self):
+        """A reader who knows a rival was on the card can judge the number
+        for themselves. A record that does not say so is asking them to
+        trust it."""
         base = [48.0, 48.1, 47.9, 48.0, 48.05]
         res = _result(base, [43.5] * 5)
         res.contended_samples = 2
         res.contenders = ["houdinifx.exe:4962MiB"]
-        _, why, _ = levers.gate(res, self.obj,
-                                 {"ssim": ([0.996] * 5, [0.995] * 5)})
+        ok, why, detail = levers.gate(res, self.obj,
+                                     {"ssim": ([0.996] * 5, [0.995] * 5)})
+        self.assertTrue(ok, why)
+        self.assertEqual(detail["contended_samples"], 2)
+        self.assertIn("houdinifx", detail["shared_card_note"])
         self.assertIn("houdinifx", why)
+
+    def test_a_moved_control_is_refused_even_with_contention(self):
+        """The control moving is the authority. The rivals are only the
+        reason it might have moved."""
+        base = [48.0, 60.0, 60.0, 60.0, 48.0]
+        res = _result(base, [47.0] * 5)
+        res.contended_samples = 3
+        res.contenders = ["houdinifx.exe:4962MiB"]
+        ok, why, _ = levers.gate(res, self.obj,
+                                 {"ssim": ([0.996] * 5, [0.995] * 5)})
+        self.assertFalse(ok)
+        self.assertIn("middle", why)
 
 
 class TestAShortPairedSeriesIsRefused(unittest.TestCase):

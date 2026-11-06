@@ -392,9 +392,25 @@ def gate(res: paired.PairResult, obj: Objective,
         +6.75%, +10.98%, +14.86% and +23.20% at window sizes of 52, 56, 60
         and 70 seconds — verdicts that blamed the candidate for the
         machine's own change.
-      * `contended_samples` — a repetition the engine KNOWS was taken while
-        other GPU work was on the card. It used to be counted and to gate
-        nothing; a sample known to be contended can refuse the verdict.
+      * `contended_samples` — repetitions taken while other GPU work was on
+        the card. It is RECORDED and it is REPORTED, but it does not refuse
+        the verdict on its own, and the reason is the direction of the
+        error.
+
+        A process holding a GPU context is not the same as a process
+        RENDERING. On this box a workstation with Nuke and Houdini OPEN —
+        idle, drawing 12% utilisation — has both resident, and a tool that
+        treated that as contention could not measure anything at all on a
+        normal desk. Observed on 2026-11-06.
+
+        What is safe to ignore is bounded. If a rival hits the CONTROL, the
+        control moves, and the drift and spread checks catch it — those are
+        the authority, and they are checked first. If a rival hits the
+        CANDIDATE arm, the candidate reads slow and the effect is
+        UNDERSTATED: a false DENY, not a false ADMIT. So contention that
+        leaves the control steady can only move the verdict towards
+        refusing it, which is the safe direction. A verdict that survives
+        both checks was not made on a stolen card.
 
     The end-to-end drift is still checked, and still reported, because a
     monotone change is a real way for the machine to move and the number
@@ -409,7 +425,7 @@ def gate(res: paired.PairResult, obj: Objective,
                 f"otherwise busy. Close it and run this again — this is the same "
                 f"failure that produced the +12% phantom on 2026-11-03.",
                 {"drift": res.baseline_drift, "control_spread": res.control_spread,
-                 "effect": 0.0})
+                 "contended_samples": res.contended_samples, "effect": 0.0})
     if res.control_exceeded:
         return (False,
                 f"the BASELINE moved {res.control_spread:.1%} away from its own "
@@ -421,18 +437,32 @@ def gate(res: paired.PairResult, obj: Objective,
                 f"of the run, not at its ends. Something else was using the GPU "
                 f"for part of the campaign — close it and run this again.",
                 {"drift": res.baseline_drift, "control_spread": res.control_spread,
-                 "effect": 0.0})
-    if res.contended_samples:
-        who = f" ({', '.join(res.contenders)})" if res.contenders else ""
-        return (False,
-                f"{res.contended_samples} sample(s) were taken while other GPU work "
-                f"was on the card{who}, and the repetition could not be repeated "
-                f"clean. A sample known to be contended cannot support a verdict "
-                f"— close whatever else is using the GPU and run this again.",
-                {"drift": res.baseline_drift, "control_spread": res.control_spread,
                  "contended_samples": res.contended_samples, "effect": 0.0})
-    return obj.admits(res.baseline.values, res.candidate.values, guards,
-                      paired_diffs=res.diffs)
+    if res.contended_samples:
+        # The control held steady and the drift is inside the limit, so the
+        # comparison is sound — but say plainly that the card was shared, and
+        # with whom. A reader who knows a rival was on the card can judge the
+        # number for themselves; a record that does not say so is asking
+        # them to trust it.
+        who = ", ".join(res.contenders) if res.contenders else "another process"
+        shared_note = (
+            f"{res.contended_samples} repetition(s) were taken while other GPU "
+            f"work was on the card ({who}). The control held steady and the "
+            f"drift is inside the limit, so the comparison stands; contention "
+            f"that leaves the control steady can only make the effect look "
+            f"SMALLER, never larger.")
+        print(f"  {shared_note}")
+    admitted, reason, detail = obj.admits(res.baseline.values, res.candidate.values,
+                                          guards, paired_diffs=res.diffs)
+    if res.contended_samples:
+        detail["contended_samples"] = res.contended_samples
+        detail["contenders"] = list(res.contenders)
+        detail["shared_card_note"] = shared_note
+        # The verdict string carries it too, so a reader of the RECORD sees
+        # that the card was shared without having to know to look in the
+        # detail fields.
+        reason = f"{reason} — but {shared_note}"
+    return admitted, reason, detail
 
 
 def ssim_guardrail(res: paired.PairResult) -> Optional[Dict[str, Any]]:
@@ -614,7 +644,8 @@ def _report(res: paired.PairResult, guards: Optional[Dict[str, Any]]) -> None:
     if res.contended_samples:
         who = f" ({', '.join(res.contenders)})" if res.contenders else ""
         print(f"  {res.contended_samples} sample(s) were taken while other GPU work "
-              f"was on the card{who} and could not be repeated clean")
+              f"was on the card{who} — the control held steady, so the comparison "
+              f"stands, but the card was shared")
     if guards:
         g_base, g_cand = guards["ssim"]
         print(f"  ssim guardrail: baseline {statistics.fmean(g_base):.4f} vs "

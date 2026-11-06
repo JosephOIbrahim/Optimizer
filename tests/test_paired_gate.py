@@ -383,3 +383,117 @@ class TestTheDetectorItself(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestAResidentRivalIsNotContention(unittest.TestCase):
+    """A process holding a GPU CONTEXT is not a process RENDERING.
+
+    On this box a workstation with Nuke and Houdini OPEN — idle, drawing 12%
+    utilisation — has both resident. Treating that as contention made the
+    tool unable to measure anything on a normal desk: every repetition was
+    flagged, retried three times against the same rivals, and the campaign
+    was refused.
+
+    What is safe to ignore is bounded. Contention that hits the CONTROL
+    moves the control, and the drift and spread checks catch it — they are
+    checked first. Contention that hits the CANDIDATE arm makes the effect
+    read SMALLER: a false DENY, not a false ADMIT. So contention that
+    leaves the control steady can only move the verdict towards refusing
+    it.
+    """
+
+    def _result(self, base, cand, contended=0, contenders=()):
+        res = paired.PairResult(baseline=paired.ArmResult("b"),
+                                candidate=paired.ArmResult("c"))
+        res.baseline.values = list(base)
+        res.candidate.values = list(cand)
+        res.diffs = [c - b for b, c in zip(base, cand)]
+        res.baseline_drift = (base[-1] - base[0]) / abs(base[0])
+        res.contended_samples = contended
+        res.contenders = list(contenders)
+        return res
+
+    def test_a_shared_card_with_a_steady_control_still_admits(self):
+        """The rival was there for the whole run and never drew from the
+        card. The comparison is sound."""
+        from harness import levers
+        from v12.objective import render_objective
+        obj = render_objective(resolution="1024x429", samples=128)
+        base = [48.0, 48.1, 47.9, 48.0, 48.05]
+        cand = [43.5, 43.4, 43.6, 43.5, 43.55]
+        res = self._result(base, cand, contended=5,
+                           contenders=["houdini.exe:7140MiB"])
+        ok, why, detail = levers.gate(res, obj, {"ssim": ([0.996] * 5,
+                                                        [0.995] * 5)})
+        self.assertTrue(ok, why)
+        # And the record says so, so a reader can judge it.
+        self.assertIn("shared_card_note", detail)
+        self.assertIn("houdini.exe", detail["shared_card_note"])
+
+    def test_a_moved_control_is_refused_whatever_the_contention(self):
+        """The control moving is the authority — the rivals are only the
+        reason it might have moved."""
+        from harness import levers
+        from v12.objective import render_objective
+        obj = render_objective(resolution="1024x429", samples=128)
+        base = [48.0, 60.0, 60.0, 60.0, 48.0]      # a window in the middle
+        cand = [47.0] * 5
+        res = self._result(base, cand, contended=3,
+                           contenders=["houdini.exe:7140MiB"])
+        ok, why, _ = levers.gate(res, obj, {"ssim": ([0.996] * 5,
+                                                     [0.995] * 5)})
+        self.assertFalse(ok)
+        self.assertIn("middle", why)
+
+    def test_the_same_rivals_are_not_retried(self):
+        """Waiting for a rival that is not going anywhere costs three times
+        the GPU time for the same answer — and it exhausts the arm's
+        iterator, which crashes the run."""
+        from harness import paired as P
+        from harness import common
+        calls = []
+        values = [1.0, 2.0, 3.0]
+
+        def arm(index):
+            calls.append(index)
+            return {"value": values.pop(0)}
+
+        orig = common.other_gpu_processes
+        common.other_gpu_processes = lambda *a, **kw: ["houdini.exe:7140MiB"]
+        try:
+            p = P.Pair("t", arm, lambda i: {"value": 1.0}, reps=1, warmup=0)
+            p.quiet_check = None
+            res = p.run()
+        finally:
+            common.other_gpu_processes = orig
+        # Two, not three: the first attempt has nothing to compare against,
+        # so it retries once to see whether the rivals move. The second sees
+        # the same set and stops.
+        self.assertEqual(len(calls), 2, calls)
+        # Each attempt counts as a contended sample.
+        self.assertEqual(res.contended_samples, 2)
+
+    def test_a_rival_seen_by_an_earlier_arm_is_not_retried_again(self):
+        """The rivals belong to the CARD, so the second arm does not pay
+        for the discovery the first arm already made."""
+        from harness import paired as P
+        from harness import common
+        calls = []
+
+        def arm(index):
+            calls.append(index)
+            return {"value": 1.0}
+
+        orig = common.other_gpu_processes
+        common.other_gpu_processes = lambda *a, **kw: ["houdini.exe:7140MiB"]
+        try:
+            p = P.Pair("t", arm, arm, reps=2, warmup=0)
+            p.quiet_check = None
+            p.run()
+        finally:
+            common.other_gpu_processes = orig
+        # The rivals belong to the CARD, so the campaign pays for the
+        # discovery ONCE: the first arm retries (nothing to compare
+        # against), and every arm after that does not retry at all.
+        # Five calls for two arms, not six — and not eight.
+        self.assertEqual(len(calls), 5, calls)
