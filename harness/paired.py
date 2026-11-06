@@ -9,7 +9,7 @@ verdict came back ADMIT +12.34%, p=1.9e-05 — and it was meaningless. The
 re-timed baseline was 48.06 s against the candidate's 47.71 s: +0.7%, nothing.
 (The "+0.7%" there is the phantom's own cross-session arithmetic, not a
 measurement of the lever. Measured the way this module measures — both arms
-alternately in one session — the same change is DENY -0.60%, and that is the
+alternately in one session — the same change is DENY -0.65%, and that is the
 figure to quote.) The two numbers were never a comparison of anything. They
 were a comparison of two different afternoons.
 

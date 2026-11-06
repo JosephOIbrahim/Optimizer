@@ -4,8 +4,8 @@ commit them, so the committed copies cannot go stale.
 
 Why this exists
 ---------------
-The operator cards quote figures — "+46.95%, p=2.4e-06", "DENY -0.60%",
-"the beauty-only lever is +9.79%" — and the records those figures came from
+The operator cards quote figures — "+46.95%, p=2.4e-06", "DENY -0.65%",
+"the beauty-only lever is +10.85%" — and the records those figures came from
 are the evidence. They live in the repo under `measurements/`, committed
 alongside the code that produced them, so a reader can check a claim against
 the file it came from instead of taking it on trust.

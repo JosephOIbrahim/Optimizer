@@ -10,8 +10,8 @@ different set of resident apps, at a different clock state. Any drift between
 the two sessions was charged to the candidate.
 
 On 2026-11-03 that produced a verdict of ADMIT +12.34% (p=1.9e-05) for a
-thread-count change worth nothing: re-measured on 2026-11-05 with both arms
-alternately in one session, the same change is DENY -0.60%. (The "+0.7%" that
+thread-count change worth nothing: re-measured on 2026-11-06 with both arms
+alternately in one session, the same change is DENY -0.65%. (The "+0.7%" that
 first appeared against it — 47.710 against 48.060 — was the phantom's own
 cross-session arithmetic, which is the defect, not a measurement.) The Field
 Notes call it "the move that evaporated"; the verdict sat in the ledger.
@@ -59,11 +59,11 @@ The levers
     husk_threads         render with a fixed thread count
     manual               a change the operator applies by hand
 
-Measured on this box (2026-11-04 and 11-05), each against its own control:
+Measured on this box (through 2026-11-06), each against its own control:
 
     frames_per_process  3 frames, 1 process each -> 1 process   +46.95%  p=2.4e-06
-    aov_variant         full AOV set -> beauty only              +9.79%   p=3.7e-05
-    power_ceiling       450 W -> 600 W (fp16 GEMM)               +8.50%   p=2.5e-07
+    aov_variant         full AOV set -> beauty only              +10.85%  p=1.13e-04
+    power_ceiling       450 W -> 600 W (fp16 GEMM)               +10.57%  p=4.4e-06
     power_ceiling       450 W -> 600 W (Karma render)            0%   (never at the cap)
 """
 from __future__ import annotations
@@ -399,7 +399,7 @@ def gate(res: paired.PairResult, obj: Objective,
 
         A process holding a GPU context is not the same as a process
         RENDERING. On this box a workstation with Nuke and Houdini OPEN —
-        idle, drawing 12% utilisation — has both resident, and a tool that
+        idle, holding GPU contexts — has both resident, and a tool that
         treated that as contention could not measure anything at all on a
         normal desk. Observed on 2026-11-06.
 
@@ -817,7 +817,7 @@ def lever_aov_variant(ctx: Context, obj: Objective) -> Result:
     On 2026-11-03 the beauty-only variant measured 39.93 s against a 48.06 s
     baseline, and the ledger called that +16.91%. That comparison was between
     two sessions, so it was retracted: measured properly, with both arms
-    alternately in one session, the lever is worth +9.79% (p=3.7e-05). The
+    alternately in one session, the lever is worth +10.85% (p=1.13e-04). The
     win is real; the first number was drift charged to the change.
 
     This is a SCENE-side lever, not a card-side one, which is the point: the

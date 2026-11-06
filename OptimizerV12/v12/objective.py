@@ -398,7 +398,7 @@ def paired_t_test(diffs: Sequence[float], direction: Direction) -> float:
         cross-session arithmetic — 47.710 against 48.060 — and it was the
         phantom's own defect, not a measurement of the lever. Measured the way
         this function measures, with both arms alternately in one session, the
-        same change is DENY -0.60%: it was worth nothing.)
+        same change is DENY -0.65%: it was worth nothing.)
 
     Welch on two INDEPENDENT series cannot catch that, because the drift
     between the two measurement sessions is variance it attributes to the
