@@ -1,23 +1,11 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 #
-# CodeRabbit is turned off for this repository, deliberately.
-#
-# The records, the operator cards and the README are the evidence that this
-# harness's figures are checkable, and a review bot that rewrites them into
-# a table of what it thinks changed adds nothing to that: the figure checks
-# in CI are the review that matters here, and they are mechanical.
-#
-# Turning it off in-repo rather than by removing the app's access to the
-# account, because the account spans repositories this setting should not
-# touch.
+# PROBE (after the removal): this branch ENABLES the review bot, so that
+# silence proves the APP has lost access to this repo - not that the config
+# is silencing it. The config on main disables the bot; this one turns it
+# back on for the probe only.
 reviews:
-  # No automatic review, and no re-review on each push.
   auto_review:
-    enabled: false
-  # No commit status named "CodeRabbit" on the pull request's latest commit.
-  commit_status: false
-  # No "review in progress" check run, no skipped-review messages, and no
-  # fortune while a review is running.
-  review_progress: false
-  review_status: false
-  in_progress_fortune: false
+    enabled: true
+  commit_status: true
+  review_progress: true
