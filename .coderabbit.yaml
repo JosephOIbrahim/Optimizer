@@ -1,0 +1,11 @@
+# CodeRabbit configuration.
+#
+# This repo's records, cards and README are the evidence that the harness's
+# figures are checkable, and a review bot that rewrites them into a table of
+# what it thinks changed adds nothing to that: the figure checks in CI are
+# the review that matters here, and they are mechanical.
+#
+# So the bot is turned off in-repo rather than by removing its access to the
+# account, which would also change every other repository the account has.
+auto_review:
+  enabled: false
